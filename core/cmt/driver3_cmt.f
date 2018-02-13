@@ -6,6 +6,7 @@ C> conserved unknowns U
       subroutine compute_primitive_vars
       include 'SIZE'
       include 'INPUT'
+      include 'PARALLEL'
       include 'GEOM'
       include 'CMTDATA'
       include 'SOLN'
@@ -14,11 +15,22 @@ C> conserved unknowns U
       parameter (lxyz=lx1*ly1*lz1)
       common /ctmp1/ energy(lx1,ly1,lz1),scr(lx1,ly1,lz1)
       integer e, eq
+      common /posflags/ ifailr,ifaile,ifailt
+      integer ifailr,ifaile,ifailt
 
-      nxyz= nx1*ny1*nz1
+      nxyz= lx1*ly1*lz1
       ntot=nxyz*nelt
+      ifailr=-1
+      ifaile=-1
+      ifailt=-1
 
       do e=1,nelt
+! JH020918 long-overdue sanity checks
+         dmin=vlmin(u(1,1,1,irg,e),nxyz)
+         if (dmin .lt. 0.0) then
+            ifailr=lglel(e)
+            write(6,*) nid,'***NEGATIVE DENSITY***',dmin,lglel(e)
+         endif
          call invcol3(vx(1,1,1,e),u(1,1,1,irpu,e),u(1,1,1,irg,e),nxyz)
          call invcol3(vy(1,1,1,e),u(1,1,1,irpv,e),u(1,1,1,irg,e),nxyz)
 !        if (if3d)
@@ -41,8 +53,18 @@ C> conserved unknowns U
 ! don't forget to get density where it belongs
          call invcol3(vtrans(1,1,1,e,irho),u(1,1,1,irg,e),phig(1,1,1,e),
      >                nxyz)
-         call tdstate(e,energy)
+! JH020718 long-overdue sanity checks
+         emin=vlmin(energy,nxyz)
+         if (emin .lt. 0.0) then
+            ifaile=lglel(e)
+            write(6,*) nid, ' HAS NEGATIVE ENERGY ',emin,lglel(e)
+         endif
+         call tdstate(e,energy) ! compute state, fill ifailt
       enddo
+
+      call poscheck(ifailr,'density    ')
+      call poscheck(ifaile,'energy     ')
+      call poscheck(ifailt,'temperature')
 
 ! setup_convect has the desired effect
 ! if IFPART=F
@@ -55,7 +77,7 @@ C> conserved unknowns U
 !-----------------------------------------------------------------------
 ! to make life easier until we master this stuff and harmonize even better with nek,
 ! I'm including 'DEALIAS' and calling set_convect_cons here
-      if (nxd.gt.nx1) then
+      if (lxd.gt.lx1) then
          call set_convect_cons (vxd,vyd,vzd,vx,vy,vz)
       else
          call copy(vxd,vx,ntot) 
@@ -65,6 +87,7 @@ C> conserved unknowns U
 
       return
       end
+
 !-----------------------------------------------------------------------
 
 C> Compute thermodynamic state for element e from internal energy.
@@ -78,16 +101,25 @@ c We have perfect gas law. Cvg is stored full field
       include 'PARALLEL'
       include 'NEKUSE'
       integer   e,eg
-      real energy(nx1,ny1,nz1)
+      real energy(lx1,ly1,lz1)
+
+      common /posflags/ ifailr,ifaile,ifailt
+      integer ifailr,ifaile,ifailt
 
       eg = lglel(e)
-      do k=1,nz1
-      do j=1,ny1
-      do i=1,nx1
+      do k=1,lz1
+      do j=1,ly1
+      do i=1,lx1
          call nekasgn(i,j,k,e)
          call cmtasgn(i,j,k,e)
-         e_internal=energy(i,j,k) !nekasgn should do this, but can't
+         e_internal=energy(i,j,k) !cmtasgn should do this, but can't
          call cmt_userEOS(i,j,k,eg)
+! JH020718 long-overdue sanity checks
+         if (temp .lt. 0.0) then
+            ifailt=eg
+            write(6,'(i6,a26,3i2,i8,e15.6)') ! might want to be less verbose
+     >      nid,' HAS NEGATIVE TEMPERATURE ', i,j,k,eg,temp
+         endif
          vtrans(i,j,k,e,icp)= cp*rho
          vtrans(i,j,k,e,icv)= cv*rho
          t(i,j,k,e,1)       = temp
@@ -139,9 +171,9 @@ c-----------------------------------------------------------------------
       include 'PARALLEL'
       include 'CMTDATA'
       include 'NEKUSE'
-      nxyz2=nx2*ny2*nz2       ! Initialize all fields:
+      nxyz2=lx2*ly2*lz2       ! Initialize all fields:
       ntot2=nxyz2*nelv
-      nxyz1=nx1*ny1*nz1
+      nxyz1=lx1*ly1*lz1
       ntott=nelt*nxyz1
       ntotv=nelv*nxyz1
       ltott=lelt*nxyz1
@@ -222,9 +254,9 @@ c     ! save velocity on fine mesh for dealiasing
       integer e,eg
       do e=1,nelt
          eg = lglel(e)
-         do k=1,nz1
-         do j=1,ny1
-         do i=1,nx1           
+         do k=1,lz1
+         do j=1,ly1
+         do i=1,lx1           
             call nekasgn (i,j,k,e)
             call cmtasgn (i,j,k,e)
             call useric  (i,j,k,eg)
@@ -249,5 +281,28 @@ c     ! save velocity on fine mesh for dealiasing
          enddo
          enddo
       enddo
+      return
+      end
+
+!-----------------------------------------------------------------------
+
+      subroutine poscheck(ifail,what)
+      include 'SIZE'
+      include 'PARALLEL'
+      include 'INPUT'
+!JH020918 handles reporting, I/O and exit from failed positivity checks
+!         in compute_primitive_variables
+      character*11 what
+
+      ifail0=iglmax(ifail,1)
+      if(ifail0 .ne. -1) then
+         if (nio .eq. 0)
+     >   write(6,*) 'dumping solution after negative ',what,'@ eg=',
+     >             ifail0
+         ifxyo=.true.
+         call out_fld_nek
+         call exitt
+      endif
+
       return
       end
