@@ -99,15 +99,16 @@ c      COMMON /SCRCG/ DUMM10(LX1,LY1,LZ1,LELT,1)
       if(nio.eq.0) write(6,*) 'call usrdat2'
       call usrdat2
       if(nio.eq.0) write(6,'(A,/)') ' done :: usrdat2' 
-      call fix_geom
-      
-      if (ifneknekc) call multimesh_create 
 
+      call fix_geom
       call geom_reset(1)    ! recompute Jacobians, etc.
+
       call vrdsmsh          ! verify mesh topology
       call mesh_metrics     ! print some metrics
 
       call setlog  ! Initalize logical flags
+
+      if (ifneknekc) call neknek_setup
 
       call bcmask  ! Set BC masks for Dirichlet boundaries.
 
@@ -141,8 +142,6 @@ c      COMMON /SCRCG/ DUMM10(LX1,LY1,LZ1,LELT,1)
          call userchk
          if(nio.eq.0) write(6,'(A,/)') ' done :: userchk' 
       endif
-
-      call projfld_c0   ! ensure fields are contiguous
 
       call setprop      ! call again because input has changed in userchk
 
@@ -269,12 +268,14 @@ c-----------------------------------------------------------------------
       return
 #endif
 
-
       if (ifsplit) then   ! PN/PN formulation
 
          do igeom=1,ngeom
 
-         if (ifneknekc .and. igeom.gt.2) call neknek_exchange
+         if (ifneknekc .and. igeom.gt.2) then
+            if (ifneknekm.and.igeom.eq.3) call neknek_setup
+            call neknek_exchange
+         endif
 
          ! call here before we overwrite wx 
          if (ifheat .and. ifcvode) call heat_cvode (igeom)   
@@ -303,7 +304,10 @@ c-----------------------------------------------------------------------
          call setprop
          do igeom=1,ngeom
 
-            if (ifneknekc .and. igeom.gt.2) call neknek_exchange
+            if (ifneknekc .and. igeom.gt.2) then
+              if (ifneknekm.and.igeom.eq.3) call neknek_setup
+              call neknek_exchange
+            endif
 
             ! call here before we overwrite wx 
             if (ifheat .and. ifcvode) call heat_cvode (igeom)   
@@ -312,8 +316,6 @@ c-----------------------------------------------------------------------
                if (.not.ifrich) call gengeom (igeom)
                call geneig  (igeom)
             endif
-
-            if (ifneknekm.and.igeom.eq.2) call multimesh_create
 
             if (ifmhd) then
                if (ifheat)      call heat     (igeom)
@@ -365,8 +367,11 @@ c-----------------------------------------------------------------------
          istep = istep+i
          call nek_advance
 
-         if (ifneknekc) call neknek_exchange
-         if (ifneknekc) call chk_outflow
+         if (ifneknekc) then 
+            call neknek_exchange
+            call bcopy
+            call chk_outflow
+         endif
       enddo
 
       return
