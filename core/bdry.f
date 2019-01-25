@@ -689,6 +689,7 @@ C
       CALL ADD2(V2,TMP2,NTOT)
       IF (IF3D) CALL ADD2(V3,TMP3,NTOT)
 
+      if (ifneknekc) call fix_surface_flux
 
       tusbc=tusbc+(dnekclock()-etime1)
 
@@ -2120,7 +2121,7 @@ c
       do e=1,nelv
       do f=1,2*ndim
       do i=1,n
-         if (boundaryIDList(f,e) .eq. sid_list(i)) then
+         if (boundaryID(f,e) .eq. sid_list(i)) then
             nmember(iobj) = nmember(iobj) + 1
             mem = nmember(iobj)
             ieg = lglel(e)
@@ -2151,7 +2152,7 @@ c
 
       do iel = 1,nelt
       do ifc = 1,2*ndim
-         if (boundaryIDList(ifc,iel).eq.sid) cbc(ifc,iel,ifld) = cbci
+         if (boundaryID(ifc,iel).eq.sid) cbc(ifc,iel,ifld) = cbci
       enddo
       enddo
 

@@ -1,4 +1,4 @@
-# Release v18.0-4
+# Release v19.0-rc1
 
 ## What is new? 
 
@@ -15,12 +15,11 @@
 * Support for GNU 8.x compilers
 * Support for Cray compilers
 * Support for ARM compilers
+* Add AVM regularization for scalars (experimental)
 * FEM_AMG precoditioner (experimental) p40=3
 * SEMG_AMG_HYPRE precoditioner (experimental) p40=2
 * CHT support for generic fld reader
 * Overwrite core routines in usr
-* Fully scaleable memory footprint PPLIST=DPROCMAP (experimental)
-* Online genmap PPLIST=PARRSB (experimental) 
 * Lagrangian phase model - LPM (experimental)
 * Various bug fixes
 
@@ -33,12 +32,12 @@
 * Remove common block CTORQ from usr (now part of OBJDATA included in TOTAL)
 * Use amg_setup tool instead of amg_hypre (required for semg_amg preconditioner) 
 * Your parameters to the reserved user space param(170) - param(200) 
-* Set lelr in SIZE to number of elements per restart file (for muli-file I/O only)
+* Set lelr in SIZE for a restart using muliple files (check value in hdr) 
 * Use planar_avg() instead of planar_average_z etc. 
 
 ## Known Bugs 
 
-[507](https://github.com/Nek5000/Nek5000/issues/507),
+[562](https://github.com/Nek5000/Nek5000/issues/562),
 [474](https://github.com/Nek5000/Nek5000/issues/474),
 [407](https://github.com/Nek5000/Nek5000/issues/407),
 [65](https://github.com/Nek5000/Nek5000/issues/65)

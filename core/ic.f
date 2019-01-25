@@ -194,6 +194,8 @@ C     Ensure that all processors have the same time as node 0.
          endif
       endif
 
+      call projfld_c0 ! ensure fields are contiguous
+
 C print min values
       xxmax = glmin(xm1,ntott)
       yymax = glmin(ym1,ntott)
@@ -2238,6 +2240,7 @@ c      ifgtim  = .true.  ! always get time
       enddo
 
       NPSR = 0
+      NPS  = 0
       do i=1,10 
          if (rdcode1(i).eq.'X') ifgetxr = .true.
          if (rdcode1(i).eq.'U') ifgetur = .true.
@@ -2271,11 +2274,6 @@ c      ifgtim  = .true.  ! always get time
      &      'WARNING: NPSCAL read from restart file differs from ',
      &      'currently used NPSCAL!'
          endif
-      endif
-
-      if (nelr.gt.lelr) then
-         write(6,*) 'ERROR: increase lelr in SIZE!', lelr, nelr
-         call exitt
       endif
 
       p0th = 1 
@@ -2469,7 +2467,7 @@ c               if(nid.eq.0) write(6,'(A,I2,A)') ' Reading ps',k,' field'
       nbyte = glsum(dnbyte,1)
       nbyte = nbyte + iHeaderSize + 4 + isize*nelgr
 
-      if (tio.eq.0) tio=1 ! Avoid division by zero, pff, 11/29/15
+      if (tio.eq.0) tio=1
       if (nio.eq.0) write(6,7) istep,time,
      &             nbyte/tio/1024/1024/10,
      &             nfiler
@@ -2561,6 +2559,18 @@ c-----------------------------------------------------------------------
 #ifdef NOMPIIO
       ifmpiio = .false.
 #endif
+
+      if (ifmpiio) then
+         if (nelt.gt.lelr) then
+            write(6,*) 'ERROR: increase lelr in SIZE!', lelr, nelt
+            call exitt
+         endif
+      else
+         if (nelr.gt.lelr) then
+            write(6,*) 'ERROR: increase lelr in SIZE!', lelr, nelr
+            call exitt
+         endif
+      endif
 
       if(.not.ifmpiio) then
 
@@ -2713,20 +2723,21 @@ c-----------------------------------------------------------------------
       return
       end
 c-----------------------------------------------------------------------
-      subroutine full_restart(s80,n_restart)
+      subroutine full_restart(fnames,n_restart)
       include 'SIZE'
       include 'TOTAL'
 
-      character*80 s80(n_restart)
+      character *(*) fnames(*)
 
       ifile = istep+1  ! istep=0,1,...
 
       if (ifile.le.n_restart) then
          p67 = param(67)
          param(67) = 6.00
-         call chcopy (initc,s80(ifile),80)
+         call chcopy (initc,fnames(ifile),80)
          call bcast  (initc,80)
-         call restart       (1)
+         call restart(1)
+         call setprop
          param(67)=p67
       endif
    
@@ -2741,6 +2752,8 @@ c-----------------------------------------------------------------------
       nxyz1 = lx1*ly1*lz1
       ntott = nelt*nxyz1
       ntotv = nelv*nxyz1
+
+      if(nid.eq.0 .and. loglevel.gt.2) write(6,*) 'projfld_c0'
 
 c     if (ifflow.and..not.ifdg)  then  ! Current dg is for scalars only
       if (ifflow)  then

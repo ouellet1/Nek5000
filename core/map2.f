@@ -12,7 +12,7 @@ c
 c
       etime0 = dnekclock_sync()
 
-      if(nio.eq.0) write(6,'(A)') ' partioning elements to processors'
+      if(nio.eq.0) write(6,'(A)') ' partioning elements to MPI ranks'
 
       MFIELD=2
       IF (IFFLOW) MFIELD=1
@@ -77,16 +77,10 @@ C     Output the processor-element map:
         endif
       endif
 
-      nn = iglmin(nelt,1)
-      nm = iglmax(nelt,1)
-      dtmp = dnekclock() - etime0
+      dtmp = dnekclock_sync() - etime0
       if(nio.eq.0) then
         write(6,*) ' '
-        write(6,*) 'element load imbalance/min/max: ',nm-nn,nn,nm
-        if((nm-nn)/(1.*nn).gt.0.2) 
-     $    write(6,*) 'WARNING: imbalance >20% !!!'
         write(6,'(A,g13.5,A,/)')  ' done :: partioning ',dtmp,' sec'
-        write(6,*) ' '
       endif
 
       return
@@ -165,11 +159,11 @@ c-----------------------------------------------------------------------
 
       integer hrsb
 
-      integer*8 eid8(lelt), vtx8(8 * lelt)
+      integer*8 eid8(lelt), vtx8(8*lelt)
       integer iwork(lelt)
       common /ctmp0/ eid8, vtx8, iwork
 
-#ifdef PARRSB
+#if defined(PARRSB) || defined(PARMETIS)
 
       call read_con(wk,size(wk),neli,nvi,nelgti,nelgvi)
       if (nvi .ne. nlv)
@@ -179,7 +173,7 @@ c-----------------------------------------------------------------------
       if (nelgvi .ne. nelgv)
      $   call exitti('nelgt for mesh/con differs!$',0)
       if (nelgt .ne. nelgv)
-     $   call exitti('parRSB does not support CHT yet!$',0)
+     $   call exitti('No support for CHT yet!$',0)
       if (neli .gt. lelt)
      $   call exitti('neli > lelt!$',neli)
 
@@ -191,10 +185,17 @@ c-----------------------------------------------------------------------
       enddo
 
       nelv = lelv
+#ifdef PARRSB
       call fparRSB_partMesh(eid8,vtx8,nelv,
      $                      eid8,vtx8,neli,
      $                      nlv,nekcomm,ierr)
       call err_chk(ierr,'parRSB failed!$')
+#elif PARMETIS
+      call fparMETIS_partMesh(eid8,vtx8,nelv,
+     $                        eid8,vtx8,neli,
+     $                        nlv,nekcomm,ierr)
+      call err_chk(ierr,'parMETIS failed!$')
+#endif
 
       nelt = nelv
       if (nelt .gt. lelt) call exitti('nelt > lelt!$',nelt)
@@ -236,13 +237,16 @@ c-----------------------------------------------------------------------
 
 
 #ifdef DPROCMAP
-      call exitti('DPROCMAP requires PARRSB!$',0)
+      call exitti('DPROCMAP requires PARRSB or PARMETIS!$',0)
 #else
       call read_map(vertex,nlv,wk,mdw,ndw)
 #endif
 
 
 #endif
+
+      call icopy48(vtx8,vertex,nelt*nlv)
+      call printPartStat(vtx8,nelt,nlv,nekcomm)
 
       return
       end
