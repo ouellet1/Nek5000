@@ -285,8 +285,8 @@ C> for each equation (inner), one element at a time (outer)
 !          15 full fields or more.
 !-----------------------------------------------------------------------
 ! Get user defined forcing from userf defined in usr file
-         call compute_gradients(e) ! gradU
          call cmtusrf(e)
+         call compute_gradients(e) ! gradU
          do eq=1,toteq
             call convective_cmt(e,eq)        ! convh & totalh -> res1
 !     if (1.eq.2) then
