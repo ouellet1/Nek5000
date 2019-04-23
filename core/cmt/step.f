@@ -57,11 +57,6 @@ C> @file step.f time stepping and mesh spacing routines
       else
          dt = abs(param(12))
       endif
-      dt_ptcle = dt  
-#ifdef LPM
-      call lpm_set_dt(dt_ptcle) ! particle time step
-      dt=min(dt,dt_ptcle)
-#endif
 
       if (timeio .gt. 0.0) then ! adjust dt for timeio. 
          zetime1=time_cmt
