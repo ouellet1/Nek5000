@@ -49,6 +49,14 @@ C> @file step.f time stepping and mesh spacing routines
          call glsqinvcolmin(dt2,vdiff(1,1,1,1,iknd),gridh,ntot,ctarg)
          call glsqinvcolmin(dt3,vdiff(1,1,1,1,inus),gridh,ntot,ctarg)
          dt=min(dt_cfl,dt1,dt2,dt3)
+
+         ! Limit by diffusion number = cfl number here
+         call glinvcol2max(diffno1,vdiff(1,1,1,1,imu), gridh,ntot,dt)
+         diffno_max = ctarg
+         ratio      = diffno1/diffno_max
+         if (ratio .gt. 1) dt = dt/(1.1*ratio) ! give a little extra wiggle room
+         ! Limit by diffusion number = cfl number here
+
          if (dt .gt. 10.0) then
             if (nio.eq.0) write(6,*) 'dt huge. crashing ',istep,stage,
      >         dt
