@@ -1,39 +1,61 @@
 if [ $# -eq 0 ]; then
   echo ""
-  echo "usage: neknek_mpdmpd [case 1] [case 2] [np 1] [np 2] "
+  echo "usage: neknek case1 case2 np1 np2 [uncoupled] "
   echo ""
   exit 1
 fi
 
-CASENAME1=$(basename "$1")
-CASENAME2=$(basename "$2")
+NT=$#
+COUPLED="T"
+if [ "${!NT}" == "uncoupled" ]; then
+  COUPLED="F"
+  NT=$(($NT-1))
+fi
 
-CASEDIR1=`pwd`'/'$CASENAME1
-CASEDIR2=`pwd`'/'$CASENAME2 
-NP1=$3
-NP2=$4
+if [ $(($NT%2)) -eq 1 ]; then
+  echo "please provide NP for each case"
+  echo "usage: neknek case1 case2 np1 np2 [uncoupled] "
+  echo ""
+  exit 1
+fi
 
-rm -f $CASEDIR1/logfile
-rm -f $CASEDIR2/logfile
+if [ $(($NT/2)) -ne 2 ]; then
+   echo ""
+   echo "only 2 sessions permitted right now"
+   echo ""
+   exit 1
+fi
 
-rm -f $CASEDIR1/ioinfo
-rm -f $CASEDIR2/ioinfo
+rm -f ioinfo
+export NEK_LOGFILE=logfile
 
-mv $CASEDIR1/$1.log.$3 $CASEDIR1/$1.log1.$3 2>/dev/null
-mv $CASEDIR2/$2.log.$4 $CASEDIR1/$2.log1.$4 2>/dev/null
+rm -rf SESSION.NAME  2>/dev/null
+echo   $(($NT/2))      >>   SESSION.NAME
+echo  $COUPLED         >>   SESSION.NAME
 
-rm -rf SESSION.NAME >/dev/null
-echo  2          >>   SESSION.NAME                        
-echo  $CASENAME1 >>   SESSION.NAME                     
-echo  $CASEDIR1  >>   SESSION.NAME                         
-echo  $NP1       >>   SESSION.NAME                      
-echo  $CASENAME2 >>   SESSION.NAME                      
-echo  $CASEDIR2  >>   SESSION.NAME                        
-echo  $NP2       >>   SESSION.NAME                       
-rm -rf ioinfo
-mpiexec -x NEK_LOGFILE=$CASEDIR1/$1.log.$3 -np $NP1 $CASEDIR1/nek5000 : -x NEK_LOGFILE=$CASEDIR2/$2.log.$4 -np $NP2 $CASEDIR2/nek5000 &
+execstr=" "
+NP=0
+for ((i = 1; i <= $(($NT/2)); i++ )); do
+  j=$(($i-1))
+  proc="$(($NT/2+i))"
+  eval "NP$i=${!proc}"
+  casedir=`pwd`'/'${!i}
 
-sleep 2
-ln $CASEDIR1/$1.log.$3 $CASEDIR1/logfile
-ln $CASEDIR2/$2.log.$4 $CASEDIR2/logfile
+  echo  ${!i}      >>   SESSION.NAME
+  echo `pwd`'/'${!i} >>   SESSION.NAME
+  echo  ${!proc}     >>   SESSION.NAME
 
+  NP=$(($NP+${!proc}))
+  cp -f ${!i}.logfile ${!i}.logfile1  2>/dev/null
+  rm -f s0000${j}_"$NEK_LOGFILE"
+  ln -sf s0000${j}_"$NEK_LOGFILE" ${!i}.logfile
+
+  if [ $i -eq $(($NT/2)) ]; then
+    execstr="$execstr -np $((NP$i)) $casedir/nek5000 &"
+  else
+    execstr="$execstr -np $((NP$i)) $casedir/nek5000 :"
+  fi
+done
+#echo $execstr
+
+eval "mpiexec $execstr"
