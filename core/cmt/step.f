@@ -26,9 +26,9 @@ C> @file step.f time stepping and mesh spacing routines
 ! YOU REALLY PROBABLY WANT YOUR OWN SCRATCH SPACE FOR THAT
 !--------------------------------------------------------------
       common /udxmax/ umax
-      real strof
+      real strof,diffno4 !ADDED for lambda tracking
       data strof /1.0e-8/
-
+  
       dt=abs(param(12))
 
       NTOT   = lx1*ly1*lz1*NELV
@@ -90,13 +90,16 @@ C> @file step.f time stepping and mesh spacing routines
       call glinvcol2max(diffno1,vdiff(1,1,1,1,imu), gridh,ntot,dt)
       call glinvcol2max(diffno2,vdiff(1,1,1,1,iknd),gridh,ntot,dt)
       call glinvcol2max(diffno3,vdiff(1,1,1,1,inus),gridh,ntot,dt)
+      call glinvcol2max(diffno4,vdiff(1,1,1,1,ilam),gridh,ntot,dt)
+!added for lambda tracking also in format statment below 
 !     diffno=max(diffno1,diffno2,diffno3)
       time_cmt= time_cmt+dt
       time    = time_cmt
       if (nio.eq.0) WRITE(6,100)ISTEP,TIME_CMT,DT,COURNO,
-     >   diffno1,diffno2,diffno3
+     >   diffno1,diffno2,diffno3,diffno4
  100  FORMAT('CMT ',I7,', t=',1pE14.7,', DT=',1pE14.7
-     $,', C=',1pE12.5,', Dmu,knd,art=',3(1pE11.4))
+     $,', C=',1pE12.5,', Dmu,knd,art,lam=',4(1pE11.4))
+
 
       return
       end

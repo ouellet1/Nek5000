@@ -118,6 +118,8 @@ c------------------------------------------------------------------------
             enddo
          endif
          call cfill(t(1,1,1,e,4),theta,nxyz)
+
+! if "!!3" exists it was there to remove limiter of internal energy
 !        rho=vlsc2(bm1(1,1,1,e),u(1,1,1,1,e),nxyz)/volel(e)
 
 ! positivity-preserving limiter of Lv & Ihme: internal energy

@@ -54,7 +54,8 @@ c     Solve the Euler equations
 !! JH082718 mask viscosity in t(:,3)
 !!        call col2(t(1,1,1,1,3),t(1,1,1,1,5),nxyz*nelt)
 !!        call max_to_trilin(t(1,1,1,1,3))
-         call entropy_viscosity         ! for high diffno
+!         call entropy_viscosity
+         call semi_cook_viscosity                ! for high diffno
 !        call piecewiseAV(AVeverywhere)
          call compute_transport_props   ! at t=0
 
@@ -197,7 +198,8 @@ C> Store it in res1
 
 !     if (1==2) then
 !     call piecewiseAV(shock_detector)
-      call entropy_viscosity
+!     call entropy_viscosity
+      call semi_cook_viscosity
       call compute_transport_props ! everything inside rk stage
 !     endif
 !     call smoothing(vdiff(1,1,1,1,imu)) ! still done in usr file
@@ -327,8 +329,8 @@ C> res1+=\f$\int_{\Gamma} \{\{\mathbf{A}\nabla \mathbf{U}\}\} \cdot \left[v\righ
       enddo
 !      endif
       dumchars='end_of_rhs'
-!     call dumpresidue(dumchars,999)
-
+!      call dumpresidue(dumchars,999)
+!      call exitt
       return
       end
 !-----------------------------------------------------------------------
