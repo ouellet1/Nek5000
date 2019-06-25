@@ -49,20 +49,22 @@ c---------------------------------------------------------------------
       common /cmtgasprop/ csound
 
       real            cpgref,cvgref,cvjref,gmaref,rgasref,molmass,
-     $   MAref,MBref,CAref,CBref,   ! NTN for mixed model
+     $   MAref,MBref,CAref,CBref,   ! NTN for 1-equation mixture model
      $    rhoidref,rho0ref,EN_IDref,EN_Oref,
-     $    MWref,CWref,MCref,CCref,
-     $    AAref,
-     $    BBref,R1ref,R2ref,OMref,
-     $    AA,BB,OM,CC,CW,se0const
+     $    MWref,CWref,MCref,CCref,       ! JWL
+     $    AAref,BBref,R1ref,R2ref,OMref,
+     $    AA,BB,OM,CC,CW,
+     >    gmatait,rho0tait,p0tait,Btait,cvtait,e0tait,T0tait, ! Tait
+     >    se0const
 
       common /cmtgasref/cpgref,cvgref,cvjref,gmaref,rgasref,molmass,
-     $    MAref,MBref,CAref,CBref,   ! NTN for mixed model
-     $    rhoidref,rho0ref,EN_IDref,EN_Oref,
-     $    MWref,CWref,MCref,CCref,
-     $    AAref,
-     $    BBref,R1ref,R2ref,OMref,
-     $    AA,BB,OM,CC,CW,se0const
+     $    MAref,MBref,CAref,CBref,   ! NTN for 1-equation mixture model
+     $    rhoidref,rho0ref,EN_IDref,EN_Oref, 
+     $    MWref,CWref,MCref,CCref,       ! JWL
+     $    AAref,BBref,R1ref,R2ref,OMref,
+     $    AA,BB,OM,CC,CW,
+     >    gmatait,rho0tait,p0tait,Btait,cvtait,e0tait,T0tait, ! Tait
+     >    se0const
 
       integer              stage,nstage,iostep2
       common /tstepstage/ stage,nstage,iostep2

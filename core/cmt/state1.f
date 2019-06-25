@@ -408,3 +408,20 @@
      > *exp(-R1*rho0/DE)+BB*(1.-OM/(R2*rho0/DE))
      > *exp(-R2*rho0/DE)))/(OM*DE)
       END
+
+!-----------------------------------------------------------------------
+! JH062519 Tait EOS for water. towards multispecies CMT-nek 
+!-----------------------------------------------------------------------
+      function MixtTait_P_r(rho,p0,rho0,B,gma)
+      implicit none
+      real MixtTait_P_r
+      real rho,p0,rho0,B,gma
+      MixtTait_P_r=p0+B*((rho/rho0)**gma-1.0)
+      end
+
+      function MixtTait_T_e(e,e0,T0,cv)
+      implicit none
+      real MixtTait_T_e
+      real e,e0,T0,cv
+      MixtTait_T_e=T0+(e-e0)/cv
+      end
