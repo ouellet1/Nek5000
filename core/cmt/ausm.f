@@ -137,6 +137,33 @@ C> @}
       END
 
 !-----------------------------------------------------------------------
+! JH070119 local Lax-Friedrichs for a product of two scalars a & b
+!          advected by the velocity
+
+      subroutine LLF_FluxFunction(ntot,nx,ny,nz,area,ul,vl,wl,al,bl,
+     >                            ur,vr,wr,ar,br,flx)
+! intent(in)
+      integer ntot
+      real nx(ntot),ny(ntot),nz(ntot),area(ntot),ul(ntot),vl(ntot),
+     >     wl(ntot),al(ntot),bl(ntot),ur(ntot),vr(ntot),wr(ntot),
+     >     ar(ntot),br(ntot)
+! out
+      real flx(ntot)
+! local
+      real lambda
+
+      do i=1,ntot
+         ql=ul(i)*nx(i)+vl(i)*ny(i)+wl(i)*nz(i)
+         qr=ur(i)*nx(i)+vr(i)*ny(i)+wr(i)*nz(i)
+         flx(i)=0.5*(ql*al(i)*bl(i)+qr*ar(i)*br(i))
+         lambda=0.5*max(abs(ql),abs(qr))
+         flx(i)=flx(i)+lambda*(al(i)*bl(i)-ar(i)*br(i))
+      enddo
+
+      return
+      end
+
+!-----------------------------------------------------------------------
 ! NOT LONG FOR THIS WORLD
 
       SUBROUTINE CentralInviscid_FluxFunction(ntot,nx,ny,nz,fs,ul,pl,

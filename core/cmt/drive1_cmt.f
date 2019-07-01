@@ -210,7 +210,10 @@ C> Store it in res1
 !          RK loop at the END of the time step, but I lose custody
 !          of commons in SOLN between cmt_nek_advance and the rest of
 !          the time loop.
-         call copy(t(1,1,1,1,2),vtrans(1,1,1,1,irho),nxyz*nelt)
+! JH070119 Tait mixture model extension. Need T(:,2) for mass fraction
+!          of one of the two species. put mixture density (for
+!          post-processing only) into T(:,4)           
+         call copy(t(1,1,1,1,4),vtrans(1,1,1,1,irho),nxyz*nelt)
          call cmtchk
 
 !        if (mod(istep,iostep2).eq.0) then
