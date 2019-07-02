@@ -60,7 +60,7 @@ C> \f$\oint \mathbf{H}^{c\ast}\cdot\mathbf{n}dA\f$ on face points
 
 ! JH070119 Tait mixture model extension.
 !          Need species mass fraction (2 species for now) on faces
-      call fillq(imfrac,t(1,1,1,1,2),fatface(iwm),fatface(iwp))
+      call fillq(imfracf,t(1,1,1,1,2),fatface(iwm),fatface(iwp))
 
       call face_state_commo(fatface(iwm),fatface(iwp),nfq,nstate
      >                     ,dg_hndl)
@@ -282,7 +282,7 @@ C> @}
             call map_faced(al,wminus(1,f,e,isnd),lx1,lxd,fdim,0)
             call map_faced(el,wminus(1,f,e,icpf),lx1,lxd,fdim,0)
 ! JH070119 Tait mixture model extension. Y- and Y+
-            call map_faced(yl,wminus(1,f,e,imfrac),lx1,lxd,fdim,0)
+            call map_faced(yl,wminus(1,f,e,imfracf),lx1,lxd,fdim,0)
 
             call map_faced(rr,wplus(1,f,e,irho),lx1,lxd,fdim,0)
             call map_faced(ur,wplus(1,f,e,iux),lx1,lxd,fdim,0)
@@ -292,7 +292,7 @@ C> @}
             call map_faced(tr,wplus(1,f,e,ithm),lx1,lxd,fdim,0)
             call map_faced(ar,wplus(1,f,e,isnd),lx1,lxd,fdim,0)
             call map_faced(er,wplus(1,f,e,icpf),lx1,lxd,fdim,0)
-            call map_faced(yr,wplus(1,f,e,imfrac),lx1,lxd,fdim,0)
+            call map_faced(yr,wplus(1,f,e,imfracf),lx1,lxd,fdim,0)
 
             call map_faced(phl,wminus(1,f,e,iph),lx1,lxd,fdim,0)
 
@@ -313,7 +313,7 @@ C> @}
             call copy(tl,wminus(1,f,e,ithm),nxz)
             call copy(al,wminus(1,f,e,isnd),nxz)
             call copy(el,wminus(1,f,e,icpf),nxz)
-            call copy(yl,wminus(1,f,e,imfrac),nxz)
+            call copy(yl,wminus(1,f,e,imfracf),nxz)
 
             call copy(rr,wplus(1,f,e,irho),nxz)
             call copy(ur,wplus(1,f,e,iux),nxz)
@@ -323,7 +323,7 @@ C> @}
             call copy(tr,wplus(1,f,e,ithm),nxz)
             call copy(ar,wplus(1,f,e,isnd),nxz)
             call copy(er,wplus(1,f,e,icpf),nxz)
-            call copy(yr,wplus(1,f,e,imfrac),nxz)
+            call copy(yr,wplus(1,f,e,imfracf),nxz)
 
             call copy(phl,wminus(1,f,e,iph),nxz)
 

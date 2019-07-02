@@ -159,11 +159,11 @@ C> viscosity, and strictly interior for physical viscosity.
                      call copy(flux(1,f,e,eq),agradu(1,f,e,eq),nxz)
                   enddo
 ! METHOD "B", ADIABATIC NO-SLIP
-                  call rzero(flux(1,f,e,toteq),nxz)
+                  call rzero(flux(1,f,e,5),nxz)
 ! METHOD "A", ADIABATIC NO-SLIP augments with viscous work. triage below
 ! because, predictably, NOW I need to computate AgradU on surfaces and I don't
 ! have general code for that.
-                  call a5adiabatic_wall(flux(1,1,1,toteq),f,e,agradu,
+                  call a5adiabatic_wall(flux(1,1,1,5),f,e,agradu,
      >                                  qminus)
 ! JH112216 HARDCODING ADIABATIC WALL. DO SMARTER SOON
 !-------------------------------------------------------------
