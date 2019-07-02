@@ -301,6 +301,14 @@ c computed by multiplying rho by u_j
 
       else
 ! JH070119 Tait mixture model species. hardcode 1 for now
+! JB 070219
+        call copy(convh(1,1),u(1,1,1,toteq,e),n)
+        call copy(convh(1,2),u(1,1,1,toteq,e),n)
+        if (if3d) call copy(convh(1,3),u(1,1,1,toteq,e),n)
+
+        call col2(convh(1,1),vxd(1,1,1,e),n)
+        call col2(convh(1,2),vyd(1,1,1,e),n)
+        call col2(convh(1,3),vzd(1,1,1,e),n)
          
       endif
 
