@@ -97,7 +97,8 @@ c---------------------------------------------------------------------
       parameter (irpu=2)     ! phi_g*rho_g*u
       parameter (irpv=3)     ! phi_g*rho_g*v
       parameter (irpw=4)     ! phi_g*rho_g*w
-      parameter (iret=toteq) ! phi_g*rho_g*E
+      parameter (iret=5) ! phi_g*rho_g*E
+      parameter (imfrac=6) ! phi_g*rho_g*Y1
 ! indices for fields in Q-+
       integer iux, iuy, iuz, ipr, ithm, isnd, iph, icvf, icpf, imuf, 
      $        ikndf, ilamf, iu1, iu2, iu3, iu4, iu5, nqq
@@ -121,7 +122,7 @@ c---------------------------------------------------------------------
 ! JH070119 Tait mixture model extension.
 !          Need species mass fraction (2 species for now) on faces
       parameter (nqq=19)
-      parameter (imfrac=nqq) ! tait mixture model. will be nicer in essplit
+      parameter (imfracf=nqq) ! tait mixture model. will be nicer in essplit
 
       logical time4av
       common /cmtflags/ time4av

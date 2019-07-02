@@ -19,10 +19,6 @@ C> and store it for one element. Store faces of \f$\mathbf{H}^d\f$ for IGU.
 
       integer e,eq
 
-      if (eq .lt. toteq) then ! not energy
-         if (eq .gt. ldim+1) return ! not if3d
-      endif
-
       nxyz=lx1*ly1*lz1
       nfq=lx1*lz1*2*ldim*nelt
       nstate = nqq
@@ -486,7 +482,7 @@ c-----------------------------------------------------------------------
       integer e,eg
 
       if(istep.eq.1)then
-        n = lx1*ly1*lz1*5
+        n = lx1*ly1*lz1*toteq
         call rzero(usrf,n)
       endif
       eg = lglel(e)
@@ -510,6 +506,9 @@ c-----------------------------------------------------------------------
                usrf(i,j,k,5) = 0.0
 c              usrf(i,j,k,5) = (U(i,j,k,2,e)*FFX + U(i,j,k,3,e)*FFY
 c    &                       +  U(i,j,k,4,e)*FFZ)/ U(i,j,k,1,e)
+! JH070219 Tait mixture model. no idea what particles are going to look
+! like in it
+               usrf(i,j,k,6) = 0.0
             enddo
          enddo
       enddo
