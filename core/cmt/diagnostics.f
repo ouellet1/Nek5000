@@ -156,36 +156,36 @@ c      write(6,*)wfnav(1:i1),'.',citer(is:il)
       do i=1,length
         citer(i:i)=' '
       enddo
+! JH070319 Tait mixture model added to dumpres (or at least csv files)
       if(if3d)then
-        write(11,*)'Variables=x,y,z,e1,e2,e3,e4,e5'
+        write(11,*)'Variables=x,y,z,e1,e2,e3,e4,e5,e6'
         do e = 1,nelt
           write(11,*)'zone T="',e,'",i=',lx1,',j=',ly1,',k=',lz1
           do i=1,nxyz1
              do eq=1,toteq
                 rhseqs(eq) = res1(i,1,1,e,eq)/bm1(i,1,1,e)
              enddo
-          write(11,101)xm1(i,1,1,e),ym1(i,1,1,e),zm1(i,1,1,e)
-     $         ,rhseqs(1),rhseqs(2),rhseqs(3),rhseqs(4)
-     $         ,rhseqs(5)
+          write(11,102)xm1(i,1,1,e),ym1(i,1,1,e),zm1(i,1,1,e)
+     $         ,(rhseqs(j),j=1,toteq)
           enddo
         enddo
       else
-        write(11,*)'Variables=x,y,e1,e2,e3,e4,e5'
+! JH070319 Tait mixture model added to dumpres (or at least csv files)
+        write(11,*)'Variables=x,y,e1,e2,e3,e4,e5,e6'
         do e = 1,nelt
           write(11,*)'zone T="',e,'",i=',lx1,',j=',ly1
           do i=1,nxy1
              do eq=1,toteq
                 rhseqs(eq) = res1(i,1,1,e,eq)/bm1(i,1,1,e)
              enddo
-          write(11,102)xm1(i,1,1,e),ym1(i,1,1,e)
-     $         ,rhseqs(1),rhseqs(2),rhseqs(3),rhseqs(4)
-     $         ,rhseqs(5)
+          write(11,101)xm1(i,1,1,e),ym1(i,1,1,e),zm1(i,1,1,e)
+     $         ,(rhseqs(j),j=1,toteq)
           enddo
         enddo
       endif
       close(11)
-101   format(8(3x,e12.5))
-102   format(7(3x,e14.7))
+101   format(9(3x,e12.5))
+102   format(8(3x,e14.7))
       return
       end
 c----------------------------------------------------------------------
