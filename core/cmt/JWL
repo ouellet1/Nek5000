@@ -1,7 +1,7 @@
       real MixtJWL_SO,MixtJWL_PR,MixtJWL_TE,MixtJWL_I_ENE,
-     >     MixtJWL_Enthalpy
+     >     Mixt_Enthalpy
       external MixtJWL_SO,MixtJWL_PR,MixtJWL_TE,MixtJWL_I_ENE,
-     >     MixtJWL_Enthalpy
+     >     Mixt_Enthalpy
 !-----------------------------------------------------------------------
 ! JH062519 Tait EOS for water. towards multispecies CMT-nek 
 !-----------------------------------------------------------------------

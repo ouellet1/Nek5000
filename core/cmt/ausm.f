@@ -43,15 +43,18 @@ C> @file ausm.f Riemann solvers and other rocflu miscellany
 C> \ingroup isurf
 C> @{
 C> Computes inviscid numerical surface flux from AUSM+ Riemann solver
+! JH070319 Now with mass fraction, homogeneous ``single fluid'' Tait
+!          mixture model
       SUBROUTINE AUSM_FluxFunction(ntot,nx,ny,nz,nm,fs,rl,ul,vl,wl,pl,
-     >                         al,tl,rr,ur,vr,wr,pr,ar,tr,flx,el,er)
+     >                         al,tl,rr,ur,vr,wr,pr,ar,tr,el,er,yl,yr,
+     >                         flx)
 
 !     IMPLICIT NONE ! HAHAHHAHHAHA
 ! ******************************************************************************
 ! Definitions and declarations
 ! ******************************************************************************
-      real     MixtJWL_Enthalpy
-      external MixtJWL_Enthalpy
+      real     Mixt_Enthalpy
+      external Mixt_Enthalpy
 
 ! ==============================================================================
 ! Arguments
@@ -60,8 +63,8 @@ C> Computes inviscid numerical surface flux from AUSM+ Riemann solver
       REAL al(ntot),ar(ntot),fs(ntot),nm(ntot),nx(ntot),ny(ntot),
      >     nz(ntot),pl(ntot),pr(ntot),rl(ntot),rr(ntot),ul(ntot),
      >     ur(ntot),vl(ntot),vr(ntot),wl(ntot),wr(ntot),el(ntot),
-     >     er(ntot),tl(ntot),tr(ntot)! INTENT(IN) ::
-      REAL flx(ntot,5)!,vf(3) ! INTENT(OUT) ::
+     >     er(ntot),tl(ntot),tr(ntot),yl(ntot),yr(ntot) ! INTENT(IN) ::
+      REAL flx(ntot,6)!,vf(3) ! INTENT(OUT) ::
 
 ! ==============================================================================
 ! Locals
@@ -75,9 +78,8 @@ C> Computes inviscid numerical surface flux from AUSM+ Riemann solver
 ! ******************************************************************************
 
       do i=1,ntot
-!        Change the Enthalpy 
-         Hl = MixtJWL_Enthalpy(rl(i),pl(i),ul(i),vl(i),wl(i),el(i))
-         Hr = MixtJWL_Enthalpy(rr(i),pr(i),ur(i),vr(i),wr(i),er(i))
+         Hl = Mixt_Enthalpy(rl(i),pl(i),ul(i),vl(i),wl(i),el(i))
+         Hr = Mixt_Enthalpy(rr(i),pr(i),ur(i),vr(i),wr(i),er(i))
 
          ql = ul(i)*nx(i) + vl(i)*ny(i) + wl(i)*nz(i) - fs(i)
          qr = ur(i)*nx(i) + vr(i)*ny(i) + wr(i)*nz(i) - fs(i)
@@ -131,6 +133,8 @@ C> Computes inviscid numerical surface flux from AUSM+ Riemann solver
      >            nm(i)
          flx(i,5)=(af*(mfp*rl(i)*Hl   +mfm*rr(i)*Hr) + pf*fs(i))*
      >            nm(i)
+! JH070319 simply advect species in Tait mixture model
+         flx(i,6)=(af*(mfp*rl(i)*yl(i)+mfm*rr(i)*yr(i)))*nm(i)
       enddo
 C> @}
       return
