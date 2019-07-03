@@ -83,17 +83,18 @@ c----------------------------------------------------------------------
          call copy(otvar(1,1,1,e,6),u(1,1,1,3,e),n)
          call copy(otvar(1,1,1,e,7),u(1,1,1,4,e),n)
          call copy(otvar(1,1,1,e,1),u(1,1,1,5,e),n)
+         call copy(otvar(1,1,1,e,2),u(1,1,1,6,e),n)
       enddo
 
-c     call copy(otvar(1,1,1,1,2),tlag(1,1,1,1,1,2),n*nelt) ! s_{n-1}
-c     call copy(otvar(1,1,1,1,3),tlag(1,1,1,1,2,1),n*nelt) ! s_n
-      call copy(otvar(1,1,1,1,2),phig(1,1,1,1),n*nelt) ! s_{n-1}
-      call copy(otvar(1,1,1,1,3),pr(1,1,1,1),n*nelt) ! s_n
+      call copy(otvar(1,1,1,1,2),tlag(1,1,1,1,1,2),n*nelt) ! s_{n-1}
+      call copy(otvar(1,1,1,1,3),tlag(1,1,1,1,2,1),n*nelt) ! s_n
+!     call copy(otvar(1,1,1,1,2),phig(1,1,1,1),n*nelt) ! s_{n-1}
+!     call copy(otvar(1,1,1,1,3),pr(1,1,1,1),n*nelt) ! s_n
 
 c     ifxyo=.true.
       if (lx2.ne.lx1) call exitti('Set LX1=LX2 for I/O$',lx2)
 
-      itmp = 3
+      itmp = 4
       call outpost2(otvar(1,1,1,1,5),otvar(1,1,1,1,6),otvar(1,1,1,1,7)
      $             ,otvar(1,1,1,1,4),otvar(1,1,1,1,1),itmp,'SLN')
       return

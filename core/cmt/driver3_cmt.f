@@ -61,10 +61,15 @@ C> conserved unknowns U
             ifaile=lglel(e)
             write(6,*) stage,nid, ' HAS NEGATIVE ENERGY ',emin,lglel(e)
          endif
+! JH070219 Tait mixture model mass fractions. just one for now
+         call invcol3(t(1,1,1,e,2),u(1,1,1,imfrac,e),u(1,1,1,irg,e),
+     >                nxyz)
          call tdstate(e,energy) ! compute state, fill ifailt
       enddo
 
 ! Avoid during EBDG testing
+! JH070219 Tait mixture model: man up and test T(:,2) for positivity
+!          someday.
       call poscheck(ifailr,'density    ')
       call poscheck(ifaile,'energy     ')
       call poscheck(ifailt,'temperature')
@@ -253,6 +258,9 @@ c     ! save velocity on fine mesh for dealiasing
 
       subroutine cmtuic
 ! overlaps with setics. -DCMT will require IFDG as well
+! need to make sure setics has no effect.
+! JH070219 cmtuic now sets U and U alone. EVERYTHING else should come
+!          from compute_primitive_variables
       include 'SIZE'
       include 'SOLN'
       include 'PARALLEL'
@@ -267,23 +275,15 @@ c     ! save velocity on fine mesh for dealiasing
             call nekasgn (i,j,k,e)
             call cmtasgn (i,j,k,e)
             call useric  (i,j,k,eg)
-            vx(i,j,k,e) = ux
-            vy(i,j,k,e) = uy
-            vz(i,j,k,e) = uz
-            vtrans(i,j,k,e,irho)  = rho
-            vtrans(i,j,k,e,icv)= rho*cv
-            vtrans(i,j,k,e,icp)= e_internal
-            phig(i,j,k,e)  = phi
-            pr(i,j,k,e)    = pres
+            phig(i,j,k,e)  = phi ! only sane way to run CMT-nek without
+                                 ! particles is to have useric set phi=1
             u(i,j,k,irg,e) = phi*rho
             u(i,j,k,irpu,e)= phi*rho*ux
             u(i,j,k,irpv,e)= phi*rho*uy
             u(i,j,k,irpw,e)= phi*rho*uz
             u(i,j,k,iret,e)=phi*rho*(e_internal+0.5*(ux**2+uy**2+uz**2))
-            vdiff(i,j,k,e,imu) = mu
-            vdiff(i,j,k,e,iknd)= udiff
-            vdiff(i,j,k,e,ilam)= lambda
-            t(i,j,k,e,1) = temp
+            u(i,j,k,imfrac,e)=phi*rho*ps(1)
+            t(i,j,k,e,2) = ps(1)
          enddo
          enddo
          enddo

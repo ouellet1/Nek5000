@@ -332,11 +332,12 @@ C> @}
          call rzero(fs,nxzd) ! moving grid stuff later
 
          call AUSM_FluxFunction(nxzd,nx,ny,nz,jaco_f,fs,rl,ul,vl,wl,pl,
-     >                          al,tl,rr,ur,vr,wr,pr,ar,tr,flx,el,er)
+     >                          al,tl,rr,ur,vr,wr,pr,ar,tr,el,er,yl,yr,
+     >                          flx)
 ! JH070119 local Lax-Friedrichs for mass fraction in mixture model of
 !          Tait & JWL products
-         call LLF_FluxFunction(nxzd,nx,ny,nz,jaco_f,ul,vl,wl,rl,yl,
-     >                          ur,vr,wr,rr,yr,flx(1,toteq))
+!        call LLF_FluxFunction(nxzd,nx,ny,nz,jaco_f,ul,vl,wl,rl,yl,
+!    >                          ur,vr,wr,rr,yr,flx(1,toteq))
 
          do j=1,toteq
             call col2(flx(1,j),phl,nxzd)
