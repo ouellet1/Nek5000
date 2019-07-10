@@ -207,10 +207,7 @@ C> Implemented via maxima-generated code
            call A41kldUldxk(flux(1,1),gradu,e)
            call A42kldUldxk(flux(1,2),gradu,e)
            call A43kldUldxk(flux(1,3),gradu,e)
-        endif
-
-      else ! Energy equation courtesy of thoroughly-checked maxima
-           ! until I can get agradu_ns working correctly
+        elseif (eq.eq.5) then
          if (if3d) then
             call a53kldUldxk(flux(1,3),gradu,e)
          else
@@ -219,6 +216,10 @@ C> Implemented via maxima-generated code
          endif
          call a51kldUldxk(flux(1,1),gradu,e)
          call a52kldUldxk(flux(1,2),gradu,e)
+        endif
+
+      else ! Energy equation courtesy of thoroughly-checked maxima
+           ! until I can get agradu_ns working correctly
       endif
 
       return
@@ -255,14 +256,14 @@ C> the compressible Navier-Stokes equations (NS).
             call addcol3(flux(1,j),vdiff(1,1,1,e,inus),du(1,1,j),n)
          enddo
       else
-         if (eq.lt.toteq) then
+         if (eq.lt.5) then
             call copy(viscscr,du(1,1,eq-1),n)
             call col2(viscscr,vdiff(1,1,1,e,inus),n)
             call addcol3(flux(1,1),viscscr,vx(1,1,1,e),n)
             call addcol3(flux(1,2),viscscr,vy(1,1,1,e),n)
             if (if3d) call addcol3(flux(1,3),viscscr,vz(1,1,1,e),n)
 
-         else ! energy equation
+         elseif ( eq.eq.5) then ! energy equation
 
             if(if3d) then ! mass diffusion term
                call vdot3(viscscr,vx(1,1,1,e),vy(1,1,1,e),vz(1,1,1,e),
@@ -283,7 +284,7 @@ C> the compressible Navier-Stokes equations (NS).
                   call invcol2(viscscr,vtrans(1,1,1,e,irho),n) ! scr=nu_s*U/rho
                   call sub2(flux(1,j),viscscr,n)
                enddo
-               call addcol3(flux(1,j),du(1,toteq,j),vdiff(1,1,1,e,inus),
+               call addcol3(flux(1,j),du(1,5,j),vdiff(1,1,1,e,inus),
      >                      n)
             enddo
          endif ! eq<toteq?
@@ -391,7 +392,7 @@ C> the compressible Navier-Stokes equations (NS).
          u1    =vx(i,1,1,ie)
          u2    =vy(i,1,1,ie)
          u3    =vz(i,1,1,ie)
-         E     =U(i,1,1,toteq,ie)/rho
+         E     =U(i,1,1,5,ie)/rho
          lambdamu=lambda+mu
          kmcvmu=K-cv*mu
          flux(i)=
@@ -436,7 +437,7 @@ C> the compressible Navier-Stokes equations (NS).
          u1    =vx(i,1,1,ie)
          u2    =vy(i,1,1,ie)
          u3    =vz(i,1,1,ie)
-         E     =U(i,1,1,toteq,ie)/rho
+         E     =U(i,1,1,5,ie)/rho
          lambdamu=lambda+mu
          kmcvmu=K-cv*mu
          flux(i)=
@@ -480,7 +481,7 @@ C> the compressible Navier-Stokes equations (NS).
          u1    =vx(i,1,1,ie)
          u2    =vy(i,1,1,ie)
          u3    =vz(i,1,1,ie)
-         E     =U(i,1,1,toteq,ie)/rho
+         E     =U(i,1,1,5,ie)/rho
          lambdamu=lambda+mu
          kmcvmu=K-cv*mu
          flux(i)=
