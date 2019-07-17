@@ -27,7 +27,7 @@ C> each of lx1*ly1*lz1 grid points for all elements
      $   , totalh(lxd*lyd*lzd,3)
       common /convectdata/ convh, diffh, totalh
 
-      real               usrf(lx1,ly1,lz1,5)
+      real               usrf(lx1,ly1,lz1,toteq)
       common /forcedata/ usrf 
 
       real c_sub_e,c_max,meshh(lelt),maxdiff,gridh(lx1*ly1*lz1,lelt),
