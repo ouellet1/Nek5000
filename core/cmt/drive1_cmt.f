@@ -253,6 +253,7 @@ C> \f$\mathbf{U}^+\f$; store in CMTSURFLX
       call fluxes_full_field
 
 C> res1+=\f$\oint \mathbf{H}^{c\ast}\cdot\mathbf{n}dA\f$ on face points
+cc    if(1.eq.2) then
       nstate=nqq
       nfq=lx1*lz1*2*ldim*nelt
       iwm =1
@@ -263,8 +264,10 @@ C> res1+=\f$\oint \mathbf{H}^{c\ast}\cdot\mathbf{n}dA\f$ on face points
          call surface_integral_full(res1(1,1,1,1,eq),flux(ieq))
       enddo
       dumchars='after_inviscid'
-c     call dumpresidue(dumchars,999)
-
+cc    call dumpresidue(dumchars,999)
+cc    write(6,*)'after_inviscid'
+cc    call matout_rowsum(dxm1,lx1,lx1)
+cc    endif
                !                   -
       iuj=iflx ! overwritten with U -{{U}}
 !-----------------------------------------------------------------------
@@ -285,7 +288,9 @@ C> res1+=\f$\int_{\Gamma} \{\{\mathbf{A}^{\intercal}\nabla v\}\} \cdot \left[\ma
       call   imqqtu_dirichlet(flux(iuj),flux(iwm),flux(iwp))
       call igtu_cmt(flux(iwm),flux(iuj),graduf) ! [[u]].{{gradv}}
       dumchars='after_igtu'
-c     call dumpresidue(dumchars,999)
+cc    call dumpresidue(dumchars,999)
+cc    write(6,*)'after_igtu'
+cc    call matout_rowsum(dxm1,lx1,lx1)
 !      endif
 
 C> res1+=\f$\int \left(\nabla v\right) \cdot \left(\mathbf{H}^c+\mathbf{H}^d\right)dV\f$ 
@@ -304,8 +309,14 @@ C> for each equation (inner), one element at a time (outer)
 !          15 full fields or more.
 !-----------------------------------------------------------------------
 ! Get user defined forcing from userf defined in usr file
+cc    write(6,*)'before_cmtusrf'
+cc    call matout_rowsum(dxm1,lx1,lx1)
          call cmtusrf(e)
+cc    write(6,*)'cmtusrf'
+cc    call matout_rowsum(dxm1,lx1,lx1)
          call compute_gradients(e) ! gradU
+cc    write(6,*)'after_gradiets'
+cc    call matout_rowsum(dxm1,lx1,lx1)
          do eq=1,toteq
             call convective_cmt(e,eq)        ! convh & totalh -> res1
 !     if (1.eq.2) then
@@ -317,8 +328,12 @@ C> for each equation (inner), one element at a time (outer)
 !     endif
          enddo
       enddo
+cc    write(6,*)'after_forcing'
+cc    call matout_rowsum(dxm1,lx1,lx1)
       dumchars='after_elm'
-c     call dumpresidue(dumchars,999)
+cc    call dumpresidue(dumchars,999)
+cc    write(6,*)'after_elm'
+cc    call matout_rowsum(dxm1,lx1,lx1)
 
 !      if (1.eq.2) then
 C> res1+=\f$\int_{\Gamma} \{\{\mathbf{A}\nabla \mathbf{U}\}\} \cdot \left[v\right] dA\f$
@@ -330,8 +345,10 @@ C> res1+=\f$\int_{\Gamma} \{\{\mathbf{A}\nabla \mathbf{U}\}\} \cdot \left[v\righ
       enddo
 !      endif
       dumchars='end_of_rhs'
-c     call dumpresidue(dumchars,999)
-c     call exitt
+cc    call dumpresidue(dumchars,999)
+cc    write(6,*)'end_of_rhs'
+cc    call matout_rowsum(dxm1,lx1,lx1)
+cc    call exitt
       return
       end
 !-----------------------------------------------------------------------
