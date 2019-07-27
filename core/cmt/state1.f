@@ -417,7 +417,8 @@
       implicit none
       real MixtTait_P_r
       real rho,p0,rho0,B,gma
-      MixtTait_P_r=p0+B*((rho/rho0)**gma-1.0)
+      MixtTait_P_r=p0+B*(((rho/rho0)**gma)-1.0)
+!      write(50,*) p0,B,rho,rho0,gma
       end
 
       function MixtTait_T_e(e,e0,T0,cv)
@@ -425,4 +426,22 @@
       real MixtTait_T_e
       real e,e0,T0,cv
       MixtTait_T_e=T0+(e-e0)/cv
+      end
+c JB072519
+c added in formulas for speed of sound using tait and pure jwl      
+      function MixtTait_SO(Btait,gmatait,rho0tait,rho)
+      implicit none
+      real MixtTait_SO
+      real Btait,gmatait,rho0tait,rho
+      MixtTait_SO=SQRT(Btait*gmatait/rho0tait*
+     >     (rho/rho0tait)**(gmatait-1))
+      end
+      
+      function JWL_SO(AA,R1,rho0,rho,OM,BB,R2,pres,e2)
+      implicit none
+      real JWL_SO
+      real AA,R1,rho0,rho,OM,BB,R2,pres,e2
+      JWL_SO=SQRT(AA*(R1*(rho0/rho)/rho-OM/(R1*rho0)-OM/rho)*
+     >     exp(-R1*rho0/rho)+BB*(R2*(rho0/rho)/rho-OM/(R2*rho0)-
+     >     OM/rho)*exp(-R2*rho0/rho)+OM*e2+OM*pres/rho)
       end
