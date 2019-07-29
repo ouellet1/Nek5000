@@ -62,7 +62,8 @@ C> by nek5000
          endif
 
       enddo ! equation loop
-
+cc    call matout_rowsum(dxm1,lx1,lx1)
+cc    call exitt
       return
       end
 

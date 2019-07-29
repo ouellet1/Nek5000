@@ -245,9 +245,18 @@ c computed by multiplying rho by u_j
             call col2(convh(1,1),vxd(1,1,1,e),n)
             call col2(convh(1,2),vyd(1,1,1,e),n)
             if (if3d) call col2(convh(1,3),vzd(1,1,1,e),n)
+c JB072219 species flux
+         elseif (eq .eq. 6) then 
+            call intp_rstd(convh(1,1),u(1,1,1,eq,e),lx1,lxd,if3d,0)
+            call copy(convh(1,2),convh(1,1),n)
+            if (if3d) call copy(convh(1,3),convh(1,1),n)
+
+            call col2(convh(1,1),vxd(1,1,1,e),n)
+            call col2(convh(1,2),vyd(1,1,1,e),n)
+            call col2(convh(1,3),vzd(1,1,1,e),n)
 
          else
-            if(nio.eq.0) write(6,*) 'eq=',eq,'really must be <= 5'
+            if(nio.eq.0) write(6,*) 'eq=',eq,'really must be <= 6'
             if(nio.eq.0) write(6,*) 'aborting in evaluate_conv_h'
             call exitt
          endif
