@@ -429,12 +429,12 @@
       end
 c JB072519
 c added in formulas for speed of sound using tait and pure jwl      
-      function MixtTait_SO(Btait,gmatait,rho0tait,rho)
+      function MixtTait_SO(B,gma,rho0,rho)
       implicit none
       real MixtTait_SO
-      real Btait,gmatait,rho0tait,rho
-      MixtTait_SO=SQRT(Btait*gmatait/rho0tait*
-     >     (rho/rho0tait)**(gmatait-1))
+      real B,gma,rho0,rho
+      MixtTait_SO=SQRT(B*gma/(rho0**gma)
+     >     *(rho)**(gma-1))
       end
       
       function JWL_SO(AA,R1,rho0,rho,OM,BB,R2,pres,e2)
