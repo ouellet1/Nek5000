@@ -70,7 +70,7 @@ c----------------------------------------------------------------------
       include 'SIZE'
       include 'SOLN'
       COMMON /solnconsvar/ U(LX1,LY1,LZ1,TOTEQ,lelt) 
-      COMMON /SCRNS/      OTVAR(LX1,LY1,LZ1,lelt,7)
+      COMMON /SCRNS/      OTVAR(LX1,LY1,LZ1,lelt,8)
       real                OTVAR
       real               phig(lx1,ly1,lz1,lelt)
       common /otherpvar/ phig
@@ -78,7 +78,7 @@ c----------------------------------------------------------------------
 
       n = lx1*ly1*lz1
       do e=1,nelt
-         call copy(otvar(1,1,1,e,4),u(1,1,1,1,e),n)
+         call copy(otvar(1,1,1,e,8),u(1,1,1,1,e),n)
          call copy(otvar(1,1,1,e,5),u(1,1,1,2,e),n)
          call copy(otvar(1,1,1,e,6),u(1,1,1,3,e),n)
          call copy(otvar(1,1,1,e,7),u(1,1,1,4,e),n)
@@ -86,8 +86,8 @@ c----------------------------------------------------------------------
          call copy(otvar(1,1,1,e,2),u(1,1,1,6,e),n)
       enddo
 
-      call copy(otvar(1,1,1,1,2),tlag(1,1,1,1,1,2),n*nelt) ! s_{n-1}
-      call copy(otvar(1,1,1,1,3),tlag(1,1,1,1,2,1),n*nelt) ! s_n
+      call copy(otvar(1,1,1,1,3),tlag(1,1,1,1,1,2),n*nelt) ! s_{n-1}
+      call copy(otvar(1,1,1,1,4),tlag(1,1,1,1,2,1),n*nelt) ! s_n
 !     call copy(otvar(1,1,1,1,2),phig(1,1,1,1),n*nelt) ! s_{n-1}
 !     call copy(otvar(1,1,1,1,3),pr(1,1,1,1),n*nelt) ! s_n
 
@@ -96,7 +96,7 @@ c     ifxyo=.true.
 
       itmp = 4
       call outpost2(otvar(1,1,1,1,5),otvar(1,1,1,1,6),otvar(1,1,1,1,7)
-     $             ,otvar(1,1,1,1,4),otvar(1,1,1,1,1),itmp,'SLN')
+     $             ,otvar(1,1,1,1,8),otvar(1,1,1,1,1),itmp,'SLN')
       return
       end
 
