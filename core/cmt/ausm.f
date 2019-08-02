@@ -64,7 +64,9 @@ C> Computes inviscid numerical surface flux from AUSM+ Riemann solver
      >     nz(ntot),pl(ntot),pr(ntot),rl(ntot),rr(ntot),ul(ntot),
      >     ur(ntot),vl(ntot),vr(ntot),wl(ntot),wr(ntot),el(ntot),
      >     er(ntot),tl(ntot),tr(ntot),yl(ntot),yr(ntot) ! INTENT(IN) ::
+c JB080119 multiple fluxes      
       REAL flx(ntot,6)!,vf(3) ! INTENT(OUT) ::
+c     REAL flx(ntot,NPSCAL)!,vf(3) ! INTENT(OUT) ::
 
 ! ==============================================================================
 ! Locals
@@ -134,7 +136,11 @@ C> Computes inviscid numerical surface flux from AUSM+ Riemann solver
          flx(i,5)=(af*(mfp*rl(i)*Hl   +mfm*rr(i)*Hr) + pf*fs(i))*
      >            nm(i)
 ! JH070319 simply advect species in Tait mixture model
+c JB080119 multiple species loop
          flx(i,6)=(af*(mfp*rl(i)*yl(i)+mfm*rr(i)*yr(i)))*nm(i)
+c        do j = 6,NPSCAL
+c           flx(i,j)=(af*(mfp*rl(i)*yl(i)+mfm*rr(i)*yr(i)))*nm(i)
+c        enddo
       enddo
 C> @}
       return

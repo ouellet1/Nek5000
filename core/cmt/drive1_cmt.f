@@ -213,7 +213,9 @@ C> Store it in res1
 ! JH070119 Tait mixture model extension. Need T(:,2) for mass fraction
 !          of one of the two species. put mixture density (for
 !          post-processing only) into T(:,4)           
+c JB080119 more species change mix density, T(:,5) for 3 species
          call copy(t(1,1,1,1,4),vtrans(1,1,1,1,irho),nxyz*nelt)
+c        call copy(t(1,1,1,1,5),vtrans(1,1,1,1,irho),nxyz*nelt)
          call cmtchk
 
 !        if (mod(istep,iostep2).eq.0) then
@@ -386,11 +388,19 @@ C> Compute coefficients for Runge-Kutta stages \cite{TVDRK}
             call copy(U(1,1,1,3,e),vy(1,1,1,e),nxyz1) 
             call copy(U(1,1,1,4,e),vz(1,1,1,e),nxyz1) 
             call copy(U(1,1,1,5,e),t(1,1,1,e,1),nxyz1) 
+      
+c JB080119 copy multiple species
             call copy(U(1,1,1,6,e),t(1,1,1,e,2),nxyz1) 
+c           do i = 6,NPSCAL
+c               call copy(U(1,1,1,i,e),t(1,1,1,e,i-4),nxyz1) 
+c           enddo
             call copy(U(1,1,1,1,e),pr(1,1,1,e),nxyz1) 
          enddo
          call copy(tlag(1,1,1,1,1,2),t(1,1,1,1,3),nxyz1*nelt) ! s_{n-1}
          call copy(tlag(1,1,1,1,2,1),t(1,1,1,1,4),nxyz1*nelt) ! s_n
+c        snum = NPSCAL
+c        call copy(tlag(1,1,1,1,1,2),t(1,1,1,1,snum+1),nxyz1*nelt) ! s_{n-1}
+c        call copy(tlag(1,1,1,1,2,1),t(1,1,1,1,snum+2),nxyz1*nelt) ! s_n
       endif
       call rzero(res1,n)
 !     call copy(res2,t(1,1,1,1,5),n) ! art visc hardcoding. old entropy resid

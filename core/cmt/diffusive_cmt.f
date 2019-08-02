@@ -208,12 +208,12 @@ C> Implemented via maxima-generated code
            call A42kldUldxk(flux(1,2),gradu,e)
            call A43kldUldxk(flux(1,3),gradu,e)
         elseif (eq.eq.5) then
-         if (if3d) then
+          if (if3d) then
             call a53kldUldxk(flux(1,3),gradu,e)
-         else
+          else
             call rzero(gradu(1,1,3),lx1*ly1*lz1*toteq)
             call rzero(vz(1,1,1,e),lx1*ly1*lz1)
-         endif
+          endif
          call a51kldUldxk(flux(1,1),gradu,e)
          call a52kldUldxk(flux(1,2),gradu,e)
         endif
