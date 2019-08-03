@@ -216,7 +216,17 @@ C> Store it in res1
          call cmtchk
 
 !        if (mod(istep,iostep2).eq.0) then
-         if (mod(istep,iostep2).eq.0.or.istep.eq.1)then
+
+!BAD Jul022019 Changed the time dump to make sure we don't divide by zero
+!if user wants physical time step.
+!Added check for physical time dump
+         if (iostep2 .gt. 0) then
+                if (mod(istep,iostep2).eq.0) dumped_stage = .TRUE. 
+         else
+                if (time.ge.time_iotarg) dumped_stage = .TRUE.
+         endif        
+
+         if (dumped_stage.eq..TRUE..or.istep.eq.1)then
 !        if (mod(istep,iostep).eq.0.or.istep.eq.1)then
             call out_fld_nek ! solution checkpoint for restart
 ! T2 S1 rho

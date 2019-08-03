@@ -138,9 +138,11 @@
             do k=1,nij
                res2(ix,iy,iz,e,1)=res2(ix,iy,iz,e,1)+(sij(l,k,e)**2)
             enddo
-            res2(ix,iy,iz,e,1) = ABS(res2(ix,iy,iz,e,1)) 
+            t(ix,iy,iz,e,6) = SQRT(ABS(res2(ix,iy,iz,e,1)))    
+            res2(ix,iy,iz,e,1) = SQRT(ABS(res2(ix,iy,iz,e,1))) 
      >                                  *vtrans(ix,iy,iz,e,irho)
      >                                          *e_dist**2
+                
          enddo
          enddo
          enddo
@@ -165,7 +167,7 @@
                do k=1,ldim
                   res2(ix,iy,iz,e,3)=res2(ix,iy,iz,e,3)+0.5*sij(l,k,e)
                enddo
-               t(ix,iy,iz,e,3) = ABS(res2(ix,iy,iz,e,3)) !for debug
+               t(ix,iy,iz,e,7) = ABS(res2(ix,iy,iz,e,3)) !for debug
                res2(ix,iy,iz,e,3) = (ABS(res2(ix,iy,iz,e,3)) /
      >              (t(ix,iy,iz,e,1))**2) * vtrans(ix,iy,iz,e,irho) 
      >                * (e_dist**3) * csound(ix,iy,iz,e)**3 
