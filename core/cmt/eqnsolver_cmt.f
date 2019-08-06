@@ -246,14 +246,30 @@ c computed by multiplying rho by u_j
             call col2(convh(1,2),vyd(1,1,1,e),n)
             if (if3d) call col2(convh(1,3),vzd(1,1,1,e),n)
 c JB072219 species flux
+c JB 080119 go through for multiple species
+c        elseif (eq .ge. 6) then 
          elseif (eq .eq. 6) then 
-            call intp_rstd(convh(1,1),u(1,1,1,eq,e),lx1,lxd,if3d,0)
+c           call intp_rstd(convh(1,1),u(1,1,1,eq,e),lx1,lxd,if3d,0)
+c JB080219 trying new way to see if it work
+c           write(10,*)vtrans(1,1,1,e,irho) 
+c           write(11,*)t(1,1,1,1,2)
+c           call exitt
+            call intp_rstd(convh(1,1),vtrans(1,1,1,e,irho)
+     >                                             ,lx1,lxd,if3d,0)
+            call intp_rstd(ju1,t(1,1,1,e,2)
+     >                                             ,lx1,lxd,if3d,0)
+c           do i=1,n
+c           write(12,*)convh(n,1)
+c           write(13,*)convh(n,4)
+c           enddo 
+c           call exitt
+            call col2(convh(1,1),ju1,n)
             call copy(convh(1,2),convh(1,1),n)
             if (if3d) call copy(convh(1,3),convh(1,1),n)
 
             call col2(convh(1,1),vxd(1,1,1,e),n)
             call col2(convh(1,2),vyd(1,1,1,e),n)
-            call col2(convh(1,3),vzd(1,1,1,e),n)
+            if (if3d) call col2(convh(1,3),vzd(1,1,1,e),n)
 
          else
             if(nio.eq.0) write(6,*) 'eq=',eq,'really must be <= 6'
@@ -525,7 +541,11 @@ c              usrf(i,j,k,5) = (U(i,j,k,2,e)*FFX + U(i,j,k,3,e)*FFY
 c    &                       +  U(i,j,k,4,e)*FFZ)/ U(i,j,k,1,e)
 ! JH070219 Tait mixture model. no idea what particles are going to look
 ! like in it
+c JB080119 multiple species
                usrf(i,j,k,6) = 0.0
+c              do l = 6,NPSCAL
+c                 usrf(i,j,k,l) = 0.0
+c              enddo
             enddo
          enddo
       enddo

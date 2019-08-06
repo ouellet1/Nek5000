@@ -62,8 +62,15 @@ C> conserved unknowns U
             write(6,*) stage,nid, ' HAS NEGATIVE ENERGY ',emin,lglel(e)
          endif
 ! JH070219 Tait mixture model mass fractions. just one for now
-         call invcol3(t(1,1,1,e,2),u(1,1,1,imfrac,e),u(1,1,1,irg,e),
+c JB080119 go throug hmultiple species
+         call invcol3(t(1,1,1,e,2),u(1,1,1,imfrac,e),
+     >                u(1,1,1,irg,e),
      >                nxyz)
+c        do iscal = 1,NPSCAL
+c        call invcol3(t(1,1,1,e,1+iscal),u(1,1,1,imfrac+iscal-1,e),
+c    >                u(1,1,1,irg,e),
+c    >                nxyz)
+c        enddo
          call tdstate(e,energy) ! compute state, fill ifailt
       enddo
 
@@ -283,7 +290,11 @@ c     ! save velocity on fine mesh for dealiasing
             u(i,j,k,irpw,e)= phi*rho*uz
             u(i,j,k,iret,e)=phi*rho*(e_internal+0.5*(ux**2+uy**2+uz**2))
             u(i,j,k,imfrac,e)=phi*rho*ps(1)
-            t(i,j,k,e,2) = ps(1)
+c JB080119 multiple species
+                t(i,j,k,e,2) = ps(l)
+c           do l = 2,NPSCAL
+c               t(i,j,k,e,l) = ps(l-1)
+c           enddo
          enddo
          enddo
          enddo

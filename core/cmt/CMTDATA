@@ -81,6 +81,7 @@ c---------------------------------------------------------------------
 ! index for gas density in vtrans, Q+-
       integer irho
       parameter (irho=1) ! better always be 1
+c     paramter (lpscal=2) ! corresponds to number of species
 ! other VTRANS indices
       integer icp, icv
       parameter (icp =2) ! rho*cp
@@ -124,6 +125,8 @@ c---------------------------------------------------------------------
 !          Need species mass fraction (2 species for now) on faces
       parameter (nqq=20)
       parameter (imfracf=nqq) ! tait mixture model. will be nicer in essplit
-
+c JB080119 multiple species
+c     parameter (imfracf=20) ! tait mixture model. will be nicer in essplit
+c     parameter (nqq=imfracf+lpscal-1)
       logical time4av
       common /cmtflags/ time4av

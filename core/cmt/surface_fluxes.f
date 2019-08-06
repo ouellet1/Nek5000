@@ -60,8 +60,11 @@ C> \f$\oint \mathbf{H}^{c\ast}\cdot\mathbf{n}dA\f$ on face points
 
 ! JH070119 Tait mixture model extension.
 !          Need species mass fraction (2 species for now) on faces
+cJB080119 loop through multiple species
       call fillq(imfracf,t(1,1,1,1,2),fatface(iwm),fatface(iwp))
-
+c       do j = 1,NPSCAL
+c           call fillq(imfracf+j,t(1,1,1,1,i),fatface(iwm),fatface(iwp))
+c       enddo
       call face_state_commo(fatface(iwm),fatface(iwp),nfq,nstate
      >                     ,dg_hndl)
 
