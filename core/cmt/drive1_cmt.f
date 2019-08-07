@@ -57,10 +57,6 @@ c     Solve the Euler equations
          call entropy_viscosity         ! for high diffno
 !        call piecewiseAV(AVeverywhere)
          call compute_transport_props   ! at t=0
-
-#ifdef LPM
-      call spread_props_grid
-#endif
       endif      
       call rzero(t,nxyz1*nelt*ldimt)
 
@@ -71,14 +67,6 @@ c     Solve the Euler equations
          rhst_dum = dnekclock()
          call compute_rhs_and_dt(AVeverywhere)
          rhst = rhst + dnekclock() - rhst_dum
-c particle equations of motion are solved (also includes forcing)
-c In future this subroutine may compute the back effect of particles
-c on the fluid and suitably modify the residue computed by 
-c compute_rhs_dt for the 5 conserved variables
-!NTN         call usr_particles_solver
-#ifdef LPM
-        call lpm_usr_particles_solver
-#endif
 ! JH111815 soon....
 ! JH082316 someday...maybe?
 !        do eq=1,toteq
@@ -211,7 +199,6 @@ C> Store it in res1
 !          of commons in SOLN between cmt_nek_advance and the rest of
 !          the time loop.
          call copy(t(1,1,1,1,2),vtrans(1,1,1,1,irho),nxyz*nelt)
-         call cmtchk
 
 !        if (mod(istep,iostep2).eq.0) then
          if (mod(istep,iostep2).eq.0.or.istep.eq.1)then
@@ -222,14 +209,11 @@ C> Store it in res1
 ! T4 S3 epsebdg
             call outpost2(vx,vy,vz,pr,t,ldimt,'CMT')
             call mass_balance(if3d)
-! dump out particle information. 
-#ifdef LPM
-            call lpm_usr_particles_io(istep)
-#endif
          end if
          call setdtcmt
          call set_tstep_coef
       endif
+      call cmtchk ! Can we call every rk stage for force coupling?
 
       ntot = lx1*ly1*lz1*lelt*toteq
       call rzero(res1,ntot)

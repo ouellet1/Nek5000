@@ -103,12 +103,19 @@ cat >> $CASENAME.f << _ACEOF
 
 c automatically added by makenek
       subroutine cmtchk
+c Unlike userchk, cmtchk is called at EVERY Runge-Kutta stage. Please do 
+c NOT place executable statements outside of the if-endif block below 
+c unless you know what you are doing. 
       include 'SIZE'
       include 'TOTAL'
       include 'CMTDATA'
 
-      ifxyo=.true.
-      if (istep.gt.1) ifxyo=.false.
+      if (stage.eq.1) then
+         ! everything you'd ever want to do in userchk goes here 
+         ! if you want CMT-nek to do it
+         ifxyo=.true.
+         if (istep.gt.1) ifxyo=.false.
+      endif
 
       return
       end
