@@ -191,10 +191,10 @@ c       write(11,*)'Variables=x,y,z,e1,e2,e3,e4,e5,e6,e7,e8'
       else
 ! JH070319 Tait mixture model added to dumpres (or at least csv files)
 c JB080119 multiple species
-        write(11,*)'Variables=x,y,e1,e2,e3,e4,e5,e6'
+        write(11,*)'#Variables=x,y,e1,e2,e3,e4,e5,e6'
 c       write(11,*)'Variables=x,y,e1,e2,e3,e4,e5,e6,e7,e8'
         do e = 1,nelt
-          write(11,*)'zone T="',e,'",i=',lx1,',j=',ly1
+          write(11,*)'#zone T="',e,'",i=',lx1,',j=',ly1
           do i=1,nxy1
              do eq=1,toteq
                 rhseqs(eq) = res1(i,1,1,e,eq)/bm1(i,1,1,e)

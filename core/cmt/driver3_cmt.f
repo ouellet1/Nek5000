@@ -291,7 +291,7 @@ c     ! save velocity on fine mesh for dealiasing
             u(i,j,k,iret,e)=phi*rho*(e_internal+0.5*(ux**2+uy**2+uz**2))
             u(i,j,k,imfrac,e)=phi*rho*ps(1)
 c JB080119 multiple species
-                t(i,j,k,e,2) = ps(l)
+!               t(i,j,k,e,2) = ps(l)
 c           do l = 2,NPSCAL
 c               t(i,j,k,e,l) = ps(l-1)
 c           enddo
