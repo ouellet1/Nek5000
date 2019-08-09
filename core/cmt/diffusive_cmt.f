@@ -135,12 +135,17 @@ C> flux = \f$\mathscr{A}\f$ dU = \f$\left(\mathscr{A}^{\mbox{NS}}+\mathscr{A}^{\
       integer e, eq
       real flux(lx1*ly1*lz1,ldim),du(lx1*ly1*lz1,toteq,ldim)
 
+      if (eq.eq.6) then
+         call fluxj_scalar(flux,du,e,eq)
 C> \f$\tau_{ij}\f$ and \f$u_j \tau_{ij}\f$.  \f$\lambda=0\f$ and \f$\kappa=0\f$
 C> for EVM
-      call fluxj_ns (flux,du,e,eq)
+      else
+         call fluxj_ns (flux,du,e,eq)
 C> \f$\nu_s \nabla \rho\f$, \f$\nu_s \left(\nabla \rho \right) \otimes \mathbf{u}\f$
 C> and \f$\nu_s \nabla \left(\rho e\right)\f$.  \f$\nu_s=0\f$ for Navier-Stokes
-      call fluxj_evm(flux,du,e,eq)
+         call fluxj_evm(flux,du,e,eq)
+      endif
+
 
 ! no idea where phi goes. put it out front
 c     call col2(flux,phig(1,1,1,e),lx1*ly1*lz1)
@@ -311,19 +316,13 @@ c diffuse passive scalar (species)
       real flux(lx1*ly1*lz1,ldim),du(lx1*ly1*lz1,toteq,ldim)
       n=lx1*ly1*lz1
     
-      if (eq .eq. 6) then
-         do j = 1,ldim
-            call addcol3(flux(1,j),du(1,1,j),t(1,1,1,e,2),n) !Y*grad(U)
-            do i = 1,n     
-              flux(i,j) = (du(i,6,j) - flux(i,j))*vdiff(i,1,1,e,inus) 
-              ! [grad(U_6) - Y*grad(U)]*viscocity
-            enddo
-         enddo         
-
-      else
-         write(6,*) 'ERROR! Exiting in fluxj_scalar.'
-         call exitt
-      endif
+      do j = 1,ldim
+         call addcol3(flux(1,j),du(1,1,j),t(1,1,1,e,2),n) !Y*grad(U)
+         do i = 1,n     
+           flux(i,j) = (du(i,6,j) - flux(i,j))*vdiff(i,1,1,e,inus) 
+           ! [grad(U_6) - Y*grad(U)]*viscocity
+         enddo
+      enddo         
 
       return
       end

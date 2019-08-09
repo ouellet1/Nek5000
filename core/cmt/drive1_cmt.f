@@ -255,7 +255,7 @@ C> \f$\mathbf{U}^+\f$; store in CMTSURFLX
       call fluxes_full_field
 
 C> res1+=\f$\oint \mathbf{H}^{c\ast}\cdot\mathbf{n}dA\f$ on face points
-cc    if(1.eq.2) then
+!     if(1.eq.2) then
       nstate=nqq
       nfq=lx1*lz1*2*ldim*nelt
       iwm =1
@@ -266,7 +266,8 @@ cc    if(1.eq.2) then
          call surface_integral_full(res1(1,1,1,1,eq),flux(ieq))
       enddo
       dumchars='after_inviscid'
-!     call dumpresidue(dumchars,999)
+      call dumpresidue(dumchars,999)
+!     endif
 
                !                   -
       iuj=iflx ! overwritten with U -{{U}}
@@ -281,14 +282,14 @@ cc    if(1.eq.2) then
 ! CMTDATA BETTA REFLECT THIS!!!
 !***********************************************************************
 C> res1+=\f$\int_{\Gamma} \{\{\mathbf{A}^{\intercal}\nabla v\}\} \cdot \left[\mathbf{U}\right] dA\f$
-!      if (1.eq.2) then
+!     if (1.eq.2) then
       ium=(iu1-1)*nfq+iwm
       iup=(iu1-1)*nfq+iwp
       call   imqqtu(flux(iuj),flux(ium),flux(iup))
       call   imqqtu_dirichlet(flux(iuj),flux(iwm),flux(iwp))
       call igtu_cmt(flux(iwm),flux(iuj),graduf) ! [[u]].{{gradv}}
       dumchars='after_igtu'
-!     call dumpresidue(dumchars,999)
+      call dumpresidue(dumchars,999)
 !     endif
 
 C> res1+=\f$\int \left(\nabla v\right) \cdot \left(\mathbf{H}^c+\mathbf{H}^d\right)dV\f$ 
@@ -319,9 +320,9 @@ C> for each equation (inner), one element at a time (outer)
          enddo
       enddo
       dumchars='after_elm'
-!     call dumpresidue(dumchars,999)
+      call dumpresidue(dumchars,999)
 
-!      if (1.eq.2) then
+!     if (1.eq.2) then
 C> res1+=\f$\int_{\Gamma} \{\{\mathbf{A}\nabla \mathbf{U}\}\} \cdot \left[v\right] dA\f$
       call igu_cmt(flux(iwp),graduf,flux(iwm))
       do eq=1,toteq
@@ -329,7 +330,7 @@ C> res1+=\f$\int_{\Gamma} \{\{\mathbf{A}\nabla \mathbf{U}\}\} \cdot \left[v\righ
 !Finally add viscous surface flux functions of derivatives to res1.
          call surface_integral_full(res1(1,1,1,1,eq),flux(ieq))
       enddo
-!      endif
+!     endif
       dumchars='end_of_rhs'
 !     call dumpresidue(dumchars,999)
 
