@@ -55,6 +55,7 @@ C> @file outflow_bc.f Dirichlet states for outflow boundary conditions
          pl= facew(l,f,e,ipr) ! P- here
          wbc(l,f,e,icpf)=facew(l,f,e,icpf)
          wbc(l,f,e,icvf)=facew(l,f,e,icvf)
+         ps(1)=facew(l,f,e,imfracf)
          cv=facew(l,f,e,icvf)/rho
 ! JH080118 FIX THIS fOR NEW JWL CODE
          cp=cpgref
@@ -87,6 +88,8 @@ c        fs = 0.0
 ! dammit fix this. tdstate to the rescue?
          wbc(l,f,e,isnd)=sqrt(cp/cv*pres/rho)
 ! dammit fix that
+         wbc(l,f,e,iu6)=ps(1)*rho*phi
+         wbc(l,f,e,imfracf)=ps(1)
       enddo
       enddo
       enddo
