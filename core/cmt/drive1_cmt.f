@@ -265,8 +265,8 @@ C> res1+=\f$\oint \mathbf{H}^{c\ast}\cdot\mathbf{n}dA\f$ on face points
          ieq=(eq-1)*ndg_face+iflx
          call surface_integral_full(res1(1,1,1,1,eq),flux(ieq))
       enddo
-      dumchars='after_inviscid'
-      call dumpresidue(dumchars,999)
+cc    dumchars='after_inviscid'
+cc    call dumpresidue(dumchars,999)
 !     endif
 
                !                   -
@@ -288,8 +288,8 @@ C> res1+=\f$\int_{\Gamma} \{\{\mathbf{A}^{\intercal}\nabla v\}\} \cdot \left[\ma
       call   imqqtu(flux(iuj),flux(ium),flux(iup))
       call   imqqtu_dirichlet(flux(iuj),flux(iwm),flux(iwp))
       call igtu_cmt(flux(iwm),flux(iuj),graduf) ! [[u]].{{gradv}}
-      dumchars='after_igtu'
-      call dumpresidue(dumchars,999)
+cc    dumchars='after_igtu'
+cc    call dumpresidue(dumchars,999)
 !     endif
 
 C> res1+=\f$\int \left(\nabla v\right) \cdot \left(\mathbf{H}^c+\mathbf{H}^d\right)dV\f$ 
@@ -319,8 +319,8 @@ C> for each equation (inner), one element at a time (outer)
             call compute_forcing(e,eq)
          enddo
       enddo
-      dumchars='after_elm'
-      call dumpresidue(dumchars,999)
+cc    dumchars='after_elm'
+cc    call dumpresidue(dumchars,999)
 
 !     if (1.eq.2) then
 C> res1+=\f$\int_{\Gamma} \{\{\mathbf{A}\nabla \mathbf{U}\}\} \cdot \left[v\right] dA\f$
@@ -331,7 +331,7 @@ C> res1+=\f$\int_{\Gamma} \{\{\mathbf{A}\nabla \mathbf{U}\}\} \cdot \left[v\righ
          call surface_integral_full(res1(1,1,1,1,eq),flux(ieq))
       enddo
 !     endif
-      dumchars='end_of_rhs'
+cc    dumchars='end_of_rhs'
 !     call dumpresidue(dumchars,999)
 
       return
