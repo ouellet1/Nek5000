@@ -185,8 +185,10 @@ c                                     !     ux,uy,uz
 
 ! find a smarter way of doing this. fold it into usr file if you must
 
-         wbc(l,f,e,iu5)  = phi*rho*e_internal+0.5/rhob*(rhoub**2+rhovb**2+
+         wbc(l,f,e,iu5)= phi*rho*e_internal+0.5/rhob*(rhoub**2+rhovb**2+
      >                                               rhowb**2)
+         wbc(l,f,e,iu6)=ps(1)*rho*phi
+         wbc(l,f,e,imfracf)=ps(1)
 
       enddo
       enddo

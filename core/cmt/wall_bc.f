@@ -167,6 +167,8 @@ C> @file wall_bc.f Dirichlet states for wall boundary conditions
          wbc(l,f,e,iu3)= rr*vr
          wbc(l,f,e,iu4)= rr*wr
          wbc(l,f,e,iu5)= facew(l,f,e,iu5)
+         wbc(l,f,e,iu6)= facew(l,f,e,iu6)
+         wbc(l,f,e,imfracf)= facew(l,f,e,imfracf)
       enddo
 
       return
