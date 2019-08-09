@@ -293,7 +293,40 @@ C> the compressible Navier-Stokes equations (NS).
 
       return
       end
+!----------------------------------------------------------------------
+      subroutine fluxj_scalar(flux,du,e,eq)
+      include 'SIZE'
+      include 'INPUT'
+      include 'PARALLEL'
+      include 'CMTDATA'
+      include 'SOLN'
+c subroutine written JB080819
+c diffuse passive scalar (species)
+ 
+      parameter (ldd=lx1*ly1*lz1)
+      common /ctmp1/ viscscr(lx1,ly1,lz1) 
+      real viscscr
 
+      integer e,eq
+      real flux(lx1*ly1*lz1,ldim),du(lx1*ly1*lz1,toteq,ldim)
+      n=lx1*ly1*lz1
+    
+      if (eq .eq. 6) then
+         do j = 1,ldim
+            call addcol3(flux(1,j),du(1,1,j),t(1,1,1,e,2),n) !Y*grad(U)
+            do i = 1,n     
+              flux(i,j) = (du(i,6,j) - flux(i,j))*vdiff(i,1,1,e,inus) 
+              ! [grad(U_6) - Y*grad(U)]*viscocity
+            enddo
+         enddo         
+
+      else
+         write(6,*) 'ERROR! Exiting in fluxj_scalar.'
+         call exitt
+      endif
+
+      return
+      end
 !-----------------------------------------------------------------------
 
       subroutine half_iku_cmt(res,diffh,e)
