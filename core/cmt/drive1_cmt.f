@@ -346,7 +346,7 @@ C> res1+=\f$\int_{\Gamma} \{\{\mathbf{A}\nabla \mathbf{U}\}\} \cdot \left[v\righ
          call surface_integral_full(res1(1,1,1,1,eq),flux(ieq))
       enddo
 !      endif
-      dumchars='end_of_rhs'
+cc    dumchars='end_of_rhs'
 cc    call dumpresidue(dumchars,999)
 cc    write(6,*)'end_of_rhs'
 cc    call matout_rowsum(dxm1,lx1,lx1)
