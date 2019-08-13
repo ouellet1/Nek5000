@@ -18,7 +18,10 @@ c-----------------------------------------------------------------------
 
       iostep2=iostep
       iostep=9999999
-      
+!BAD Jul022019 Added a flag to signal dump of solution needs to happen
+!and added a variable as a physical time step goal for the code to check
+      dumped_stage = .FALSE.
+      time_iotarg = iotime  
 c     call setup_cmt_param
       return
       end
@@ -117,7 +120,9 @@ c------------------------------------------------------------------------
                u(i,1,1,1,e)=rho+abs(theta)*(uold-rho)
             enddo
          endif
-         call cfill(t(1,1,1,e,4),theta,nxyz)
+         call cfill(t(1,1,1,e,11),theta,nxyz)
+
+! if "!!3" exists it was there to remove limiter of internal energy
 !        rho=vlsc2(bm1(1,1,1,e),u(1,1,1,1,e),nxyz)/volel(e)
 
 ! positivity-preserving limiter of Lv & Ihme: internal energy
@@ -177,7 +182,7 @@ c------------------------------------------------------------------------
 !-----------------------------------------------------------------------
 ! diagnostics
 !-----------------------------------------------------------------------
-         call cfill(t(1,1,1,e,5),epsebdg(e),nxyz)
+         call cfill(t(1,1,1,e,12),epsebdg(e),nxyz)
 ! JH091818
 ! alternate limiter trying to keep U5 > kemax (at best ultraconservative)
 !         tau=vlmin(scr,nxyz)
