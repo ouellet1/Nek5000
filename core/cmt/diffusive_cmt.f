@@ -140,7 +140,7 @@ C> for EVM
       call fluxj_ns (flux,du,e,eq)
 C> \f$\nu_s \nabla \rho\f$, \f$\nu_s \left(\nabla \rho \right) \otimes \mathbf{u}\f$
 C> and \f$\nu_s \nabla \left(\rho e\right)\f$.  \f$\nu_s=0\f$ for Navier-Stokes
-      call fluxj_evm(flux,du,e,eq)
+!      call fluxj_evm(flux,du,e,eq)
 
 ! no idea where phi goes. put it out front
 c     call col2(flux,phig(1,1,1,e),lx1*ly1*lz1)
