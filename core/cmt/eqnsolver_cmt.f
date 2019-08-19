@@ -447,33 +447,21 @@ C> @}
       integer e,eq_num
       parameter (ldd=lxd*lyd*lzd)
 
-      common /lpm_fix/ phigdum,phigvdum
-      real phigdum(lx1,ly1,lz1,lelt,3),phigvdum(lx1,ly1,lz1,lelt)
-
       nxyz=lx1*ly1*lz1
       if(eq_num.ne.1.and.eq_num.ne.5)then
-
 
         if (eq_num.eq.4.and.ldim.eq.2)then
 
         else
-#ifdef LPM
-           call subcol3(res1(1,1,1,e,eq_num),phigdum(1,1,1,e,eq_num-1)
-     >                  ,bm1(1,1,1,e),nxyz)
-#endif
            call subcol3(res1(1,1,1,e,eq_num),usrf(1,1,1,eq_num)
      $                  ,bm1(1,1,1,e),nxyz) 
         endif
       elseif(eq_num.eq.5)then
-
-#ifdef LPM
-           call subcol3(res1(1,1,1,e,eq_num),phigvdum(1,1,1,e)
-     >                  ,bm1(1,1,1,e),nxyz)
-#endif
 c          call subcol3(res1(1,1,1,e,eq_num),usrf(1,1,1,eq_num)
 c    $                  ,bm1(1,1,1,e),nxyz) 
 
       endif
+
       return
       end
 c-----------------------------------------------------------------------
@@ -496,21 +484,14 @@ c-----------------------------------------------------------------------
             do i=1,lx1
                call NEKASGN(i,j,k,e)
                call userf(i,j,k,eg)
-               rdum4 = 0.
-#ifdef LPM
-               call lpm_userf(I,J,K,e,rdum1,rdum2,rdum3,rdum4)
-               FFX  = FFX + rdum1
-               FFY  = FFY + rdum2
-               FFZ  = FFZ + rdum3
-#endif
-               ! note fx,fy,fz multiply by density to stay 
-               ! consistent with nek5000 units. Same for phig (cancels)
-               usrf(i,j,k,2) = FFX*u(i,j,k,1,e)*phig(i,j,k,e)
-               usrf(i,j,k,3) = FFY*u(i,j,k,1,e)*phig(i,j,k,e)
-               usrf(i,j,k,4) = FFZ*u(i,j,k,1,e)*phig(i,j,k,e)
+
+               ! note fx,fy,fz multiply by density*phig to be
+               ! consistent with nek5000 units (i.e. ffx,ffy,ffz
+               ! are accelerations!
+               usrf(i,j,k,2) = FFX*u(i,j,k,1,e)
+               usrf(i,j,k,3) = FFY*u(i,j,k,1,e)
+               usrf(i,j,k,4) = FFZ*u(i,j,k,1,e)
                usrf(i,j,k,5) = 0.0
-c              usrf(i,j,k,5) = (U(i,j,k,2,e)*FFX + U(i,j,k,3,e)*FFY
-c    &                       +  U(i,j,k,4,e)*FFZ)/ U(i,j,k,1,e)
             enddo
          enddo
       enddo

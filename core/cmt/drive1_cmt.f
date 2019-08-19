@@ -54,13 +54,10 @@ c     Solve the Euler equations
 !! JH082718 mask viscosity in t(:,3)
 !!        call col2(t(1,1,1,1,3),t(1,1,1,1,5),nxyz*nelt)
 !!        call max_to_trilin(t(1,1,1,1,3))
-         call entropy_viscosity         ! for high diffno
+!         call entropy_viscosity
+         call semi_cook_viscosity                ! for high diffno
 !        call piecewiseAV(AVeverywhere)
          call compute_transport_props   ! at t=0
-
-#ifdef LPM
-      call spread_props_grid
-#endif
       endif      
       call rzero(t,nxyz1*nelt*ldimt)
 
@@ -71,14 +68,6 @@ c     Solve the Euler equations
          rhst_dum = dnekclock()
          call compute_rhs_and_dt(AVeverywhere)
          rhst = rhst + dnekclock() - rhst_dum
-c particle equations of motion are solved (also includes forcing)
-c In future this subroutine may compute the back effect of particles
-c on the fluid and suitably modify the residue computed by 
-c compute_rhs_dt for the 5 conserved variables
-!NTN         call usr_particles_solver
-#ifdef LPM
-        call lpm_usr_particles_solver
-#endif
 ! JH111815 soon....
 ! JH082316 someday...maybe?
 !        do eq=1,toteq
@@ -197,7 +186,8 @@ C> Store it in res1
 
 !     if (1==2) then
 !     call piecewiseAV(shock_detector)
-      call entropy_viscosity
+!     call entropy_viscosity
+      call semi_cook_viscosity
       call compute_transport_props ! everything inside rk stage
 !     endif
 !     call smoothing(vdiff(1,1,1,1,imu)) ! still done in usr file
@@ -205,30 +195,39 @@ C> Store it in res1
 
       nxyz = lx1*ly1*lz1
       if(stage.eq.1) then
+         call setdtcmt
+         call set_tstep_coef
+!BAD Jul022019 Changed the time dump to make sure we don't divide by zero
+!if user wants physical time step.
+!Added check for physical time dump
+         if (iostep2 .gt. 0) then
+                if (mod(istep,iostep2).eq.0) dumped_stage = .TRUE. 
+         else
+                if (time.ge.time_iotarg) then
+                   dumped_stage = .TRUE.
+                   time_iotarg = time_cmt + timeio
+                endif
+         endif        
+      endif
+
+      call cmtchk ! Called every RK stage for force coupling. includes
+                  ! dumped_stage, so please put custom diagnostic output
+                  ! there
+
+      if(stage.eq.1) then
 !-----------------------------------------------------------------------
 ! JH081018 a whole bunch of this stuff should really be done AFTER the
 !          RK loop at the END of the time step, but I lose custody
 !          of commons in SOLN between cmt_nek_advance and the rest of
 !          the time loop.
-         call copy(t(1,1,1,1,2),vtrans(1,1,1,1,irho),nxyz*nelt)
-         call cmtchk
 
-!        if (mod(istep,iostep2).eq.0) then
-         if (mod(istep,iostep2).eq.0.or.istep.eq.1)then
-!        if (mod(istep,iostep).eq.0.or.istep.eq.1)then
+         if (dumped_stage.or.istep.eq.1)then
             call out_fld_nek ! solution checkpoint for restart
-! T2 S1 rho
-! T3 S2 wave visc
-! T4 S3 epsebdg
             call outpost2(vx,vy,vz,pr,t,ldimt,'CMT')
             call mass_balance(if3d)
-! dump out particle information. 
-#ifdef LPM
-            call lpm_usr_particles_io(istep)
-#endif
+            dumped_stage = .FALSE.
          end if
-         call setdtcmt
-         call set_tstep_coef
+
       endif
 
       ntot = lx1*ly1*lz1*lelt*toteq
@@ -327,8 +326,8 @@ C> res1+=\f$\int_{\Gamma} \{\{\mathbf{A}\nabla \mathbf{U}\}\} \cdot \left[v\righ
       enddo
 !      endif
       dumchars='end_of_rhs'
-!     call dumpresidue(dumchars,999)
-
+!      call dumpresidue(dumchars,999)
+!      call exitt
       return
       end
 !-----------------------------------------------------------------------
