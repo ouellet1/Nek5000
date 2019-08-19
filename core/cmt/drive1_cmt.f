@@ -195,37 +195,40 @@ C> Store it in res1
 
       nxyz = lx1*ly1*lz1
       if(stage.eq.1) then
-!-----------------------------------------------------------------------
-! JH081018 a whole bunch of this stuff should really be done AFTER the
-!          RK loop at the END of the time step, but I lose custody
-!          of commons in SOLN between cmt_nek_advance and the rest of
-!          the time loop.
-         call copy(t(1,1,1,1,2),vtrans(1,1,1,1,irho),nxyz*nelt)
-
-!        if (mod(istep,iostep2).eq.0) then
-
+         call setdtcmt
+         call set_tstep_coef
 !BAD Jul022019 Changed the time dump to make sure we don't divide by zero
 !if user wants physical time step.
 !Added check for physical time dump
          if (iostep2 .gt. 0) then
                 if (mod(istep,iostep2).eq.0) dumped_stage = .TRUE. 
          else
-                if (time.ge.time_iotarg) dumped_stage = .TRUE.
+                if (time.ge.time_iotarg) then
+                   dumped_stage = .TRUE.
+                   time_iotarg = time_cmt + timeio
+                endif
          endif        
+      endif
 
-         if (dumped_stage.eq..TRUE..or.istep.eq.1)then
-!        if (mod(istep,iostep).eq.0.or.istep.eq.1)then
+      call cmtchk ! Called every RK stage for force coupling. includes
+                  ! dumped_stage, so please put custom diagnostic output
+                  ! there
+
+      if(stage.eq.1) then
+!-----------------------------------------------------------------------
+! JH081018 a whole bunch of this stuff should really be done AFTER the
+!          RK loop at the END of the time step, but I lose custody
+!          of commons in SOLN between cmt_nek_advance and the rest of
+!          the time loop.
+
+         if (dumped_stage.or.istep.eq.1)then
             call out_fld_nek ! solution checkpoint for restart
-! T2 S1 rho
-! T3 S2 wave visc
-! T4 S3 epsebdg
             call outpost2(vx,vy,vz,pr,t,ldimt,'CMT')
             call mass_balance(if3d)
+            dumped_stage = .FALSE.
          end if
-         call setdtcmt
-         call set_tstep_coef
+
       endif
-      call cmtchk ! Can we call every rk stage for force coupling?
 
       ntot = lx1*ly1*lz1*lelt*toteq
       call rzero(res1,ntot)

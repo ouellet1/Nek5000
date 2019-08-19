@@ -117,7 +117,7 @@
             !res2 = (div u)
             !apply heavy function and its consequences
             if (res2(ix,iy,iz,e,2) .GE. 0) then
-                    res2(ix,iy,iz,e,2) = 0
+                    res2(ix,iy,iz,e,2) = 0.0
             else
                     res2(ix,iy,iz,e,2) =ABS(res2(ix,iy,iz,e,2)) 
      >                                  *vtrans(ix,iy,iz,e,irho)
@@ -138,7 +138,7 @@
             do k=1,nij
                res2(ix,iy,iz,e,1)=res2(ix,iy,iz,e,1)+(sij(l,k,e)**2)
             enddo
-            t(ix,iy,iz,e,6) = SQRT(ABS(res2(ix,iy,iz,e,1)))    
+!           t(ix,iy,iz,e,6) = SQRT(ABS(res2(ix,iy,iz,e,1)))    
             res2(ix,iy,iz,e,1) = SQRT(ABS(res2(ix,iy,iz,e,1))) 
      >                                  *vtrans(ix,iy,iz,e,irho)
      >                                          *e_dist**2
@@ -167,7 +167,7 @@
                do k=1,ldim
                   res2(ix,iy,iz,e,3)=res2(ix,iy,iz,e,3)+0.5*sij(l,k,e)
                enddo
-               t(ix,iy,iz,e,7) = ABS(res2(ix,iy,iz,e,3)) !for debug
+!              t(ix,iy,iz,e,7) = ABS(res2(ix,iy,iz,e,3)) !for debug
                res2(ix,iy,iz,e,3) = (ABS(res2(ix,iy,iz,e,3)) /
      >              (t(ix,iy,iz,e,1))**2) * vtrans(ix,iy,iz,e,irho) 
      >                * (e_dist**3) * csound(ix,iy,iz,e)**3 
@@ -182,14 +182,12 @@
 !         e_dist = glmax(csound(1,1,1,1),ntot)
 !         if (nio.eq.0) WRITE(*,*), 'csound= ',e_dist, 'stage =',stage
 
-         call cfill(t(1,1,1,1,3),1.0E36,ntot)
+! piecewise linear tent over maximum values of viscosity/shock detectors
+! JH081919 PLEASE REWRITE FOR DEFORMED ELEMENTS
+         call cfill (du,1.0e36,ntot)
          do k = 1,3
-            call evmsmooth(res2(1,1,1,1,k),t(1,1,1,1,3),.true.) ! endpoints=.false.
-                                               ! is intended to
-                                               ! preserve face states,
-                                               ! but this is easier to
-                                               ! test 1D
-            call dsavg(res2(1,1,1,1,k)) ! you DEFINITELY don't want a min here
+!           call max_to_trilin(res2(1,1,1,1,k)) ! Makes life worse :(
+            call evmsmooth(res2(1,1,1,1,k),du,.true.)
          enddo
 
       return

@@ -22,7 +22,6 @@ c-----------------------------------------------------------------------
 !and added a variable as a physical time step goal for the code to check
       dumped_stage = .FALSE.
       time_iotarg = iotime  
-c     call setup_cmt_param
       return
       end
 
@@ -35,37 +34,8 @@ c     call setup_cmt_param
       enddo
       return
       end
+
 !-----------------------------------------------------------------------
-      subroutine setup_cmt_param
-      INCLUDE 'SIZE'
-      INCLUDE 'INPUT'
-      INCLUDE 'CMTDATA'
-      INCLUDE 'CMTBCDATA'
-
-      real  MixtPerf_R_CpG, MixtPerf_T_DPR, MixtPerf_C_GRT
-     >                 ,MixtPerf_Ho_CpTUVW,MixtPerf_Cp_CvR,MixtPerf_R_M
-     >                 ,MixtPerf_G_CpR      
-      external MixtPerf_R_CpG, MixtPerf_T_DPR, MixtPerf_C_GRT
-     >                 ,MixtPerf_Ho_CpTUVW,MixtPerf_Cp_CvR,MixtPerf_R_M
-     >                 ,MixtPerf_G_CpR      
-
-      cip_adhoc=10.0
-      cvgref     = param(104)
-c     gmaref     = param(105)
-      molmass    = param(106)
-      muref      = param(107)
-      coeflambda = param(108)
-      suthcoef   = param(109)
-      reftemp    = param(110)
-      prlam      = param(111)
-      pinfty     = param(112)
-      rgasref    = MixtPerf_R_M(molmass,dum)
-      cpgref     = MixtPerf_Cp_CvR(cvgref,rgasref)
-      gmaref     = MixtPerf_G_CpR(cpgref,rgasref) 
-! put these in rea file someday
-      return
-      end
-c------------------------------------------------------------------------
 
       subroutine limiter
 ! EBDG Stuff. WHERE'S PHI????
@@ -83,7 +53,6 @@ c------------------------------------------------------------------------
       ntot=nxyz*nelt
 
       epslon=1.0e-9
-
 
 !     rgam=rgasref/(gmaref-1.0)
 !      do i=1,ntot
@@ -120,7 +89,7 @@ c------------------------------------------------------------------------
                u(i,1,1,1,e)=rho+abs(theta)*(uold-rho)
             enddo
          endif
-         call cfill(t(1,1,1,e,11),theta,nxyz)
+         call cfill(t(1,1,1,e,6),theta,nxyz)
 
 ! if "!!3" exists it was there to remove limiter of internal energy
 !        rho=vlsc2(bm1(1,1,1,e),u(1,1,1,1,e),nxyz)/volel(e)
@@ -182,14 +151,7 @@ c------------------------------------------------------------------------
 !-----------------------------------------------------------------------
 ! diagnostics
 !-----------------------------------------------------------------------
-         call cfill(t(1,1,1,e,12),epsebdg(e),nxyz)
-! JH091818
-! alternate limiter trying to keep U5 > kemax (at best ultraconservative)
-!         tau=vlmin(scr,nxyz)
-!         tau=min(tau,0.0)
-!         epsalot=tau/(tau-(avstate(5)+kemax))
-!         call cfill(t(1,1,1,e,5),epsalot,nxyz)
-!-----------------------------------------------------------------------
+!        call cfill(t(1,1,1,e,12),epsebdg(e),nxyz)
 
 !         rho=avstate(1)
 !! Entropy-bounded limiter of Lv and Ihme
@@ -213,7 +175,7 @@ c------------------------------------------------------------------------
 !         epsebdg(e)=min(epsebdg(e),1.0)
 !         epsebdg(e)=max(epsebdg(e),0.0)
 !! diagnostic
-!         call cfill(t(1,1,1,e,5),epsebdg(e),nxyz)
+          call cfill(t(1,1,1,e,7),epsebdg(e),nxyz)
 !
 !         do m=1,toteq
 !            do i=1,nxyz

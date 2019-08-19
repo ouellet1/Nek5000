@@ -68,19 +68,11 @@ C> @file step.f time stepping and mesh spacing routines
       dt=min(dt,dt_ptcle)
 #endif
         
-!BAD Jul022019 Check if we met dumped at our time goal, if so push the 
-! goal to the next physical time dump
-      if (dumped_stage .eq. .TRUE.)then
-        time_iotarg = time_cmt + timeio
-        dumped_stage = .FALSE.
-        ifoutfld=.true.
-      endif
-
 !BAD Jul022019 Check to see if we will over shoot our physical time
 !dump. If so, alter dt so that we arrive at the physical time dump for
 !the next time step      
       if (((time_cmt + dt) .gt. time_iotarg) .AND. timeio .gt. 0 ) then
-        dt = time_iotarg - time_cmt
+         dt = time_iotarg - time_cmt
       endif           
 
       param(12)=-dt
