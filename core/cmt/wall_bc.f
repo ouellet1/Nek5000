@@ -18,6 +18,8 @@ C> @file wall_bc.f Dirichlet states for wall boundary conditions
       real    wbc(lx1*lz1,2*ldim,nelt,nstate) 
       common /nekcb/ cb
       character*3 cb
+      logical noslip
+      data noslip /.false./
 
       tol=1.0e-10
 ! JH112116
@@ -38,7 +40,7 @@ C> @file wall_bc.f Dirichlet states for wall boundary conditions
          l=l+1
 
 ! bring this outside of the face point loop you moron
-         if (abs(vdiff(ix,iy,iz,e,ilam)) .gt. tol) then ! physical not artvisc
+         if (noslip) then ! physical not artvisc
 
             wbc(l,f,e,iux)=ux
             wbc(l,f,e,iuy)=uy
