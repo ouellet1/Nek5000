@@ -197,6 +197,19 @@ C> Store it in res1
       if(stage.eq.1) then
          call setdtcmt
          call set_tstep_coef
+!-----------------------------------------------------------------------
+! JH081018 a whole bunch of this stuff should really be done AFTER the
+!          RK loop at the END of the time step, but I lose custody
+!          of commons in SOLN between cmt_nek_advance and the rest of
+!          the time loop.
+! JH070119 Tait mixture model extension. Need T(:,2) for mass fraction
+!          of one of the two species. put mixture density (for
+!          post-processing only) into T(:,4)           
+c JB080119 more species change mix density, T(:,5) for 3 species
+         call copy(t(1,1,1,1,4),vtrans(1,1,1,1,irho),nxyz*nelt)
+c        call copy(t(1,1,1,1,5),vtrans(1,1,1,1,irho),nxyz*nelt)
+         call cmtchk
+
 !BAD Jul022019 Changed the time dump to make sure we don't divide by zero
 !if user wants physical time step.
 !Added check for physical time dump
@@ -249,6 +262,7 @@ C> \f$\mathbf{U}^+\f$; store in CMTSURFLX
       call fluxes_full_field
 
 C> res1+=\f$\oint \mathbf{H}^{c\ast}\cdot\mathbf{n}dA\f$ on face points
+!     if(1.eq.2) then
       nstate=nqq
       nfq=lx1*lz1*2*ldim*nelt
       iwm =1
@@ -258,8 +272,9 @@ C> res1+=\f$\oint \mathbf{H}^{c\ast}\cdot\mathbf{n}dA\f$ on face points
          ieq=(eq-1)*ndg_face+iflx
          call surface_integral_full(res1(1,1,1,1,eq),flux(ieq))
       enddo
-      dumchars='after_inviscid'
-!     call dumpresidue(dumchars,999)
+cc    dumchars='after_inviscid'
+cc    call dumpresidue(dumchars,999)
+!     endif
 
                !                   -
       iuj=iflx ! overwritten with U -{{U}}
@@ -274,15 +289,15 @@ C> res1+=\f$\oint \mathbf{H}^{c\ast}\cdot\mathbf{n}dA\f$ on face points
 ! CMTDATA BETTA REFLECT THIS!!!
 !***********************************************************************
 C> res1+=\f$\int_{\Gamma} \{\{\mathbf{A}^{\intercal}\nabla v\}\} \cdot \left[\mathbf{U}\right] dA\f$
-!      if (1.eq.2) then
+!     if (1.eq.2) then
       ium=(iu1-1)*nfq+iwm
       iup=(iu1-1)*nfq+iwp
       call   imqqtu(flux(iuj),flux(ium),flux(iup))
       call   imqqtu_dirichlet(flux(iuj),flux(iwm),flux(iwp))
       call igtu_cmt(flux(iwm),flux(iuj),graduf) ! [[u]].{{gradv}}
-      dumchars='after_igtu'
-!     call dumpresidue(dumchars,999)
-!      endif
+cc    dumchars='after_igtu'
+cc    call dumpresidue(dumchars,999)
+!     endif
 
 C> res1+=\f$\int \left(\nabla v\right) \cdot \left(\mathbf{H}^c+\mathbf{H}^d\right)dV\f$ 
 C> for each equation (inner), one element at a time (outer)
@@ -304,19 +319,17 @@ C> for each equation (inner), one element at a time (outer)
          call compute_gradients(e) ! gradU
          do eq=1,toteq
             call convective_cmt(e,eq)        ! convh & totalh -> res1
-!     if (1.eq.2) then
             call    viscous_cmt(e,eq) ! diffh -> half_iku_cmt -> res1
                                              !       |
                                              !       -> diffh2graduf
 ! Compute the forcing term in each of the 5 eqs
             call compute_forcing(e,eq)
-!     endif
          enddo
       enddo
-      dumchars='after_elm'
-!     call dumpresidue(dumchars,999)
+cc    dumchars='after_elm'
+cc    call dumpresidue(dumchars,999)
 
-!      if (1.eq.2) then
+!     if (1.eq.2) then
 C> res1+=\f$\int_{\Gamma} \{\{\mathbf{A}\nabla \mathbf{U}\}\} \cdot \left[v\right] dA\f$
       call igu_cmt(flux(iwp),graduf,flux(iwm))
       do eq=1,toteq
@@ -324,10 +337,11 @@ C> res1+=\f$\int_{\Gamma} \{\{\mathbf{A}\nabla \mathbf{U}\}\} \cdot \left[v\righ
 !Finally add viscous surface flux functions of derivatives to res1.
          call surface_integral_full(res1(1,1,1,1,eq),flux(ieq))
       enddo
-!      endif
+!     endif
       dumchars='end_of_rhs'
 !      call dumpresidue(dumchars,999)
 !      call exitt
+
       return
       end
 !-----------------------------------------------------------------------
@@ -365,10 +379,19 @@ C> Compute coefficients for Runge-Kutta stages \cite{TVDRK}
             call copy(U(1,1,1,3,e),vy(1,1,1,e),nxyz1) 
             call copy(U(1,1,1,4,e),vz(1,1,1,e),nxyz1) 
             call copy(U(1,1,1,5,e),t(1,1,1,e,1),nxyz1) 
+      
+c JB080119 copy multiple species
+            call copy(U(1,1,1,6,e),t(1,1,1,e,2),nxyz1) 
+c           do i = 6,NPSCAL
+c               call copy(U(1,1,1,i,e),t(1,1,1,e,i-4),nxyz1) 
+c           enddo
             call copy(U(1,1,1,1,e),pr(1,1,1,e),nxyz1) 
          enddo
-         call copy(tlag(1,1,1,1,1,2),t(1,1,1,1,2),nxyz1*nelt) ! s_{n-1}
-         call copy(tlag(1,1,1,1,2,1),t(1,1,1,1,3),nxyz1*nelt) ! s_n
+         call copy(tlag(1,1,1,1,1,2),t(1,1,1,1,3),nxyz1*nelt) ! s_{n-1}
+         call copy(tlag(1,1,1,1,2,1),t(1,1,1,1,4),nxyz1*nelt) ! s_n
+c        snum = NPSCAL
+c        call copy(tlag(1,1,1,1,1,2),t(1,1,1,1,snum+1),nxyz1*nelt) ! s_{n-1}
+c        call copy(tlag(1,1,1,1,2,1),t(1,1,1,1,snum+2),nxyz1*nelt) ! s_n
       endif
       call rzero(res1,n)
 !     call copy(res2,t(1,1,1,1,5),n) ! art visc hardcoding. old entropy resid

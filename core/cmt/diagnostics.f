@@ -70,7 +70,7 @@ c----------------------------------------------------------------------
       include 'SIZE'
       include 'SOLN'
       COMMON /solnconsvar/ U(LX1,LY1,LZ1,TOTEQ,lelt) 
-      COMMON /SCRNS/      OTVAR(LX1,LY1,LZ1,lelt,7)
+      COMMON /SCRNS/      OTVAR(LX1,LY1,LZ1,lelt,8)
       real                OTVAR
       real               phig(lx1,ly1,lz1,lelt)
       common /otherpvar/ phig
@@ -78,24 +78,42 @@ c----------------------------------------------------------------------
 
       n = lx1*ly1*lz1
       do e=1,nelt
-         call copy(otvar(1,1,1,e,4),u(1,1,1,1,e),n)
+         call copy(otvar(1,1,1,e,8),u(1,1,1,1,e),n)
          call copy(otvar(1,1,1,e,5),u(1,1,1,2,e),n)
          call copy(otvar(1,1,1,e,6),u(1,1,1,3,e),n)
          call copy(otvar(1,1,1,e,7),u(1,1,1,4,e),n)
-         call copy(otvar(1,1,1,e,1),u(1,1,1,5,e),n)
+         call copy(otvar(1,1,1,e,1),u(1,1,1,5,e),n) !rho E
+         call copy(otvar(1,1,1,e,2),u(1,1,1,6,e),n) !species
+c JB080119 multiple species
+c rearranged order to have variable used as output number
+c        snum = 2
+c        do i = 6,NPSCAL
+c            call copy(otvar(1,1,1,e,snum),u(1,1,1,i,e),n) !species
+c            snum = snum + 1
+c        enddo
       enddo
 
-c     call copy(otvar(1,1,1,1,2),tlag(1,1,1,1,1,2),n*nelt) ! s_{n-1}
-c     call copy(otvar(1,1,1,1,3),tlag(1,1,1,1,2,1),n*nelt) ! s_n
-      call copy(otvar(1,1,1,1,2),phig(1,1,1,1),n*nelt) ! s_{n-1}
-      call copy(otvar(1,1,1,1,3),pr(1,1,1,1),n*nelt) ! s_n
+      call copy(otvar(1,1,1,1,3),tlag(1,1,1,1,1,2),n*nelt) ! s_{n-1}
+      call copy(otvar(1,1,1,1,4),tlag(1,1,1,1,2,1),n*nelt) ! s_n
+c     call copy(otvar(1,1,1,1,snum+1),tlag(1,1,1,1,1,2),n*nelt) ! s_{n-1}
+c     call copy(otvar(1,1,1,1,snum+2),tlag(1,1,1,1,2,1),n*nelt) ! s_n
+c     call copy(otvar(1,1,1,e,snum+3),u(1,1,1,2,e),n) !rho u
+c     call copy(otvar(1,1,1,e,snum+4),u(1,1,1,3,e),n) !rho y
+c     call copy(otvar(1,1,1,e,snum+5),u(1,1,1,4,e),n) !rho w
+c     call copy(otvar(1,1,1,e,snum+6),u(1,1,1,1,e),n) !rho
+!     call copy(otvar(1,1,1,1,2),phig(1,1,1,1),n*nelt) ! s_{n-1}
+!     call copy(otvar(1,1,1,1,3),pr(1,1,1,1),n*nelt) ! s_n
 
 c     ifxyo=.true.
       if (lx2.ne.lx1) call exitti('Set LX1=LX2 for I/O$',lx2)
-
-      itmp = 3
+c     smax = snum + 6
+      itmp = 4
       call outpost2(otvar(1,1,1,1,5),otvar(1,1,1,1,6),otvar(1,1,1,1,7)
-     $             ,otvar(1,1,1,1,4),otvar(1,1,1,1,1),itmp,'SLN')
+     $             ,otvar(1,1,1,1,8),otvar(1,1,1,1,1),itmp,'SLN')
+c     itmp = smax - 2
+c     call outpost2(otvar(1,1,1,1,smax-3),otvar(1,1,1,1,smax-2)
+c    $             ,otvar(1,1,1,1,smax-1)
+c    $             ,otvar(1,1,1,1,smax),otvar(1,1,1,1,1),itmp,'SLN')
       return
       end
 
@@ -155,8 +173,11 @@ c      write(6,*)wfnav(1:i1),'.',citer(is:il)
       do i=1,length
         citer(i:i)=' '
       enddo
+! JH070319 Tait mixture model added to dumpres (or at least csv files)
       if(if3d)then
-        write(11,*)'Variables=x,y,z,e1,e2,e3,e4,e5'
+c JB080119 multiple species
+        write(11,*)'Variables=x,y,z,e1,e2,e3,e4,e5,e6'
+c       write(11,*)'Variables=x,y,z,e1,e2,e3,e4,e5,e6,e7,e8'
         do e = 1,nelt
           write(11,*)'zone T="',e,'",i=',lx1,',j=',ly1,',k=',lz1
           do i=1,nxyz1
@@ -164,27 +185,28 @@ c      write(6,*)wfnav(1:i1),'.',citer(is:il)
                 rhseqs(eq) = res1(i,1,1,e,eq)/bm1(i,1,1,e)
              enddo
           write(11,101)xm1(i,1,1,e),ym1(i,1,1,e),zm1(i,1,1,e)
-     $         ,rhseqs(1),rhseqs(2),rhseqs(3),rhseqs(4)
-     $         ,rhseqs(5)
+     $         ,(rhseqs(j),j=1,toteq)
           enddo
         enddo
       else
-        write(11,*)'Variables=x,y,e1,e2,e3,e4,e5'
+! JH070319 Tait mixture model added to dumpres (or at least csv files)
+c JB080119 multiple species
+        write(11,*)'#Variables=x,y,e1,e2,e3,e4,e5,e6'
+c       write(11,*)'Variables=x,y,e1,e2,e3,e4,e5,e6,e7,e8'
         do e = 1,nelt
-          write(11,*)'zone T="',e,'",i=',lx1,',j=',ly1
+          write(11,*)'#zone T="',e,'",i=',lx1,',j=',ly1
           do i=1,nxy1
              do eq=1,toteq
                 rhseqs(eq) = res1(i,1,1,e,eq)/bm1(i,1,1,e)
              enddo
-          write(11,102)xm1(i,1,1,e),ym1(i,1,1,e)
-     $         ,rhseqs(1),rhseqs(2),rhseqs(3),rhseqs(4)
-     $         ,rhseqs(5)
+          write(11,102)xm1(i,1,1,e),ym1(i,1,1,e),
+     $         (rhseqs(j),j=1,toteq)
           enddo
         enddo
       endif
       close(11)
-101   format(8(3x,e12.5))
-102   format(7(3x,e14.7))
+101   format(9(3x,e12.5))
+102   format(8(3x,e14.7))
       return
       end
 c----------------------------------------------------------------------

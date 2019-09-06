@@ -1,8 +1,8 @@
       subroutine compute_entropy(s)
 ! computes entropy at istep and pushes the stack down for previous
 ! steps needed to compute ds/dt via finite difference (for now).
-! hardcoded for Burgers equation. More later when folded into CMT-nek
-! for Burgers, s=energy=1/2 U^2
+! hardcoded for ideal-gas law, and likely superceded by
+! semi_cook_viscosity
       include 'SIZE'
       include 'TOTAL'  ! tlag is lurking. be careful
       include 'CMTDATA'
@@ -47,6 +47,15 @@
 
 !-----------------------------------------------------------------------
 ! NEW VISC FORM
+! JH081419 BADcirca19 artificial viscosity in the spirit of Cook (2009)
+!          Phys. Fluids 21 "Enthalpy diffusion in multicomponent flows"
+!          and Cook and Cabot (2005) JCP "Hyperviscosity for
+!          shock-turbulence interactions." r=0 (raw gradient-based, no
+!          polyharmonic anything) except for temperature and species
+!          (where r=2).
+! JH081419 BAD tried Pasquetti/Guermond/whoever's old checkerboard
+!          "smoothing." Now we just tent the AV using max_to_trilin,
+!          which needs extension to deformed elements.
 
       subroutine semi_cook_viscosity
       include 'SIZE'
@@ -72,9 +81,8 @@
       ntot=n*nelt
 
 !STUFF TO ADD:
-! variable decleration
+! variable declaration
 !!!!!!!!!!!!!!!1              
-
 
 
 ! This function adds artifical shear and bulk viscosity, and
@@ -183,7 +191,7 @@
 !         if (nio.eq.0) WRITE(*,*), 'csound= ',e_dist, 'stage =',stage
 
 ! piecewise linear tent over maximum values of viscosity/shock detectors
-! JH081919 PLEASE REWRITE FOR DEFORMED ELEMENTS
+! JH081919 PLEASE REWRITE max_to_trilin FOR DEFORMED ELEMENTS
          call cfill (du,1.0e36,ntot)
          do k = 1,3
 !           call max_to_trilin(res2(1,1,1,1,k)) ! Makes life worse :(
@@ -609,6 +617,7 @@ c-----------------------------------------------------------------------
       subroutine max_to_trilin(field)
 ! stupid subroutine to take a stupid uniform field and compute a trilinear
 ! tent between maximum shared values at the vertices.
+! THIS DOESN'T WORK ON DEFORMED ELEMENTS. FIND SOMETHING THAT DOES
       include 'SIZE'
       include 'TOTAL'
       real field(lx1,ly1,lz1,nelt)

@@ -169,6 +169,8 @@ C> @file wall_bc.f Dirichlet states for wall boundary conditions
          wbc(l,f,e,iu3)= rr*vr
          wbc(l,f,e,iu4)= rr*wr
          wbc(l,f,e,iu5)= facew(l,f,e,iu5)
+         wbc(l,f,e,iu6)= facew(l,f,e,iu6)
+         wbc(l,f,e,imfracf)= facew(l,f,e,imfracf)
       enddo
 
       return
@@ -294,23 +296,26 @@ c                                     ! ux,uy,uz someday
       call CentralInviscid_FluxFunction(nxzd,nxf,nyf,nzf,fs2,dumminus,
      >                                    plf,dumminus,plf,flx)
 
-      do ieq=1,toteq-1
+      do ieq=1,4
          call col2(flx(1,ieq),jaco_f,nxzd)
       enddo
 
       if (lxd.gt.lx1) then
-         do j=1,toteq-1
+         do j=1,4
             call map_faced(fluxw(1,f,e,j),flx(1,j),lx1,lxd,fdim,1)
          enddo
-         if(cbc(f,e,ifield).ne.'I  ') call map_faced(fluxw(1,f,e,toteq),
-     >                              flx(1,toteq),lx1,lxd,fdim,1)
+         if(cbc(f,e,ifield).ne.'I  ') call map_faced(fluxw(1,f,e,5),
+     >                              flx(1,5),lx1,lxd,fdim,1)
       else
-         do j=1,toteq-1
+         do j=1,4
             call copy(fluxw(1,f,e,j),flx(1,j),nxz)
          enddo
-         if (cbc(f,e,ifield).ne.'I  ') call copy(fluxw(1,f,e,toteq),
-     >                              flx(1,toteq),nxz)
+         if (cbc(f,e,ifield).ne.'I  ') call copy(fluxw(1,f,e,5),
+     >                              flx(1,5),nxz)
       endif
+! JH070219 If I don't discard this routine completely, Tait mixture
+! model stuff goes here. Need to find a much smarter way of handling
+! adiabatic walls.
 
       return
       end
