@@ -48,8 +48,8 @@
 
 ### don't touch this section ###############################
 
-: ${FC:="gfortran"}
-: ${CC:="gcc"}
+: ${FC:="ifort"}
+: ${CC:="icc"}
 : ${bin_nek_tools:=`cd ../bin && pwd`}
 : ${MAXNEL:=150000}
 
