@@ -1,17 +1,17 @@
 #!/bin/bash
 
 # maximum number of elements
-MAXNEL=150000
+#MAXNEL=150000
 
 # binary path
-bin_nek_tools=`cd ~/bin && pwd`
+#bin_nek_tools=`cd ../bin && pwd`
 
 # Fortran compiler
-FC="gfortran"
+#FC="gfortran"
 #FFLAGS=""
 
 # C compiler
-CC="gcc"
+#CC="gcc"
 #CFLAGS=""
 
 # linking flags
@@ -48,8 +48,8 @@ CC="gcc"
 
 ### don't touch this section ###############################
 
-: ${FC:="gfortran"}
-: ${CC:="gcc"}
+: ${FC:="ifort"}
+: ${CC:="icc"}
 : ${bin_nek_tools:=`cd ../bin && pwd`}
 : ${MAXNEL:=150000}
 
@@ -128,8 +128,8 @@ case $FCcomp in
                CPPF="-Mpreprocess"
                BIGMEM="-mcmodel=medium"
                ;;
-  *gfortran*)  R8="-fdefault-real-8"
-               CPPF="-cpp"
+  *gfortran*)  R8="-fdefault-real-8 -fdefault-double-8"
+               CPPF="-std=legacy -cpp"
                BIGMEM="-mcmodel=medium"
                ;;
   *ifort*)     R8="-r8"
@@ -160,11 +160,20 @@ if [ $? -eq 0 ]; then
 fi
 \rm test_underscore.* 2>/dev/null
 
-if [[ $OSTYPE == darwin* ]]; then
-  BIGMEM="" 
+# Test BIGMEM support
+cat > _test.f << _ACEOF
+      program test
+      end
+_ACEOF
+$FC $BIGMEM -o _test _test.f >/dev/null 2>&1 || true
+\rm _test.f 2>/dev/null
+if [ -f _test ]; then
+  \rm _test 2>/dev/null
+else
+ BIGMEM=""
 fi
 
-FFLAGS+=" -DMAXNEL=$MAXNEL"
+FFLAGS+=" -O2 -DMAXNEL=$MAXNEL"
 FFLAGS=`echo $FFLAGS | sed -e "s/-D/$PPPO-D/g"`
 
 export FC=`which $FC`

@@ -67,11 +67,12 @@
 !
 !******************************************************************************
 
-      FUNCTION MixtJWL_Enthalpy(DE,PRES,VEL1,VEL2,VEL3,EN)
+      FUNCTION Mixt_Enthalpy(DE,PRES,VEL1,VEL2,VEL3,EN)
       IMPLICIT NONE
+! definition of enthalpy
       REAL DE,PRES,VEL1,VEL2,VEL3,EN
-      REAL MixtJWL_Enthalpy
-      MixtJWL_Enthalpy = 0.5*(VEL1*VEL1+VEL2*VEL2+VEL3*VEL3)
+      REAL Mixt_Enthalpy
+      Mixt_Enthalpy = 0.5*(VEL1*VEL1+VEL2*VEL2+VEL3*VEL3)
      >                  + EN+PRES/DE
       END
       FUNCTION MixtPerf_C_Co2GUVW(Co2,G,U,V,W)
@@ -408,3 +409,39 @@
      > *exp(-R1*rho0/DE)+BB*(1.-OM/(R2*rho0/DE))
      > *exp(-R2*rho0/DE)))/(OM*DE)
       END
+
+!-----------------------------------------------------------------------
+! JH062519 Tait EOS for water. towards multispecies CMT-nek 
+!-----------------------------------------------------------------------
+      function MixtTait_P_r(rho,p0,rho0,B,gma)
+      implicit none
+      real MixtTait_P_r
+      real rho,p0,rho0,B,gma
+      MixtTait_P_r=p0+B*(((rho/rho0)**gma)-1.0)
+!      write(50,*) p0,B,rho,rho0,gma
+      end
+
+      function MixtTait_T_e(e,e0,T0,cv)
+      implicit none
+      real MixtTait_T_e
+      real e,e0,T0,cv
+      MixtTait_T_e=T0+(e-e0)/cv
+      end
+c JB072519
+c added in formulas for speed of sound using tait and pure jwl      
+      function MixtTait_SO(B,gma,rho0,rho)
+      implicit none
+      real MixtTait_SO
+      real B,gma,rho0,rho
+      MixtTait_SO=SQRT(B*gma/(rho0**gma)
+     >     *(rho)**(gma-1))
+      end
+      
+      function JWL_SO(AA,R1,rho0,rho,OM,BB,R2,pres,e2)
+      implicit none
+      real JWL_SO
+      real AA,R1,rho0,rho,OM,BB,R2,pres,e2
+      JWL_SO=SQRT(AA*(R1*(rho0/rho)/rho-OM/(R1*rho0)-OM/rho)*
+     >     exp(-R1*rho0/rho)+BB*(R2*(rho0/rho)/rho-OM/(R2*rho0)-
+     >     OM/rho)*exp(-R2*rho0/rho)+OM*e2+OM*pres/rho)
+      end

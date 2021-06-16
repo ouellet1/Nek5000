@@ -1,8 +1,8 @@
       subroutine compute_entropy(s)
 ! computes entropy at istep and pushes the stack down for previous
 ! steps needed to compute ds/dt via finite difference (for now).
-! hardcoded for Burgers equation. More later when folded into CMT-nek
-! for Burgers, s=energy=1/2 U^2
+! hardcoded for ideal-gas law, and likely superceded by
+! semi_cook_viscosity
       include 'SIZE'
       include 'TOTAL'  ! tlag is lurking. be careful
       include 'CMTDATA'
@@ -44,6 +44,164 @@
 
       return
       end
+
+!-----------------------------------------------------------------------
+! NEW VISC FORM
+! JH081419 BADcirca19 artificial viscosity in the spirit of Cook (2009)
+!          Phys. Fluids 21 "Enthalpy diffusion in multicomponent flows"
+!          and Cook and Cabot (2005) JCP "Hyperviscosity for
+!          shock-turbulence interactions." r=0 (raw gradient-based, no
+!          polyharmonic anything) except for temperature and species
+!          (where r=2).
+! JH081419 BAD tried Pasquetti/Guermond/whoever's old checkerboard
+!          "smoothing." Now we just tent the AV using max_to_trilin,
+!          which needs extension to deformed elements.
+
+      subroutine semi_cook_viscosity
+      include 'SIZE'
+      include 'TOTAL'
+      include 'CMTDATA'
+      parameter (lxyz=lx1*ly1*lz1)
+      parameter (lr=lx1*ly1*lz1)    
+      common /scrns/ scrent(lxyz,lelt)
+      integer e  
+      common /scruz/ ur(lr),us(lr),ut(lr),
+     >               vr(lr),vs(lr),vt(lr),
+     >               wr(lr),ws(lr),wt(lr)
+      real ur,us,ut,vr,vs,vt,wr,ws,wt
+      common /scrns/ sij(lr,3*(ldim-1),lelv)
+      common /scrsf/ du(lr,lelt,3)
+      real sij,du,e_dist
+
+      character*132 deathmessage
+!
+      pi=4.0*atan(1.0)
+
+      n=lx1*ly1*lz1
+      ntot=n*nelt
+
+!STUFF TO ADD:
+! variable declaration
+!!!!!!!!!!!!!!!1              
+
+
+! This function adds artifical shear and bulk viscosity, and
+! conductivity. mu, beta, and kappa
+
+! mu = smoothed(rho*abs(contraction(S_ij,S_ij))*h^2)
+!
+! beta = smoothed(rho*abs(div_v)*heavy_side(div_v)*h^2)      
+!
+! kappa = smoothed(rho*c^3*abs(lap_T)*h^3/T^2)
+!
+! c = speed of sound
+! h = mesh spacing
+! heavy_side is zero if div_v >= 0 else heavy = 1
+!
+! uservp will multiply artifical quantities by user defined constants      
+
+
+      if (if3d) then
+         nij=6
+      else
+         nij=3
+      endif
+      call comp_sij(sij,nij,vx,vy,vz,ur,us,ut,vr,vs,vt,wr,ws,wt)
+
+
+      do e =1,nelt
+
+!                  res2(:,:,:,:,2)= |div u| * heavy(div u) * h^2
+         e_dist = meshh(e)
+         l=0
+         do iz=1,lz1
+         do iy=1,ly1
+         do ix=1,lx1
+            l=l+1
+            res2(ix,iy,iz,e,2)=0.0
+            do k=1,ldim
+               res2(ix,iy,iz,e,2)=res2(ix,iy,iz,e,2)+0.5*sij(l,k,e)
+            enddo
+            !res2 = (div u)
+            !apply heavy function and its consequences
+            if (res2(ix,iy,iz,e,2) .GE. 0) then
+                    res2(ix,iy,iz,e,2) = 0.0
+            else
+                    res2(ix,iy,iz,e,2) =ABS(res2(ix,iy,iz,e,2)) 
+     >                                  *vtrans(ix,iy,iz,e,irho)
+     >                                          *e_dist**2
+            endif
+         enddo
+         enddo
+         enddo
+
+!                  res2(:,:,:,:,1)=|sijsij| * rho * h^2
+
+         l=0
+         do iz=1,lz1
+         do iy=1,ly1
+         do ix=1,lx1
+            l=l+1
+            res2(ix,iy,iz,e,1)=0.0
+            do k=1,nij
+               res2(ix,iy,iz,e,1)=res2(ix,iy,iz,e,1)+(sij(l,k,e)**2)
+            enddo
+!           t(ix,iy,iz,e,6) = SQRT(ABS(res2(ix,iy,iz,e,1)))    
+            res2(ix,iy,iz,e,1) = SQRT(ABS(res2(ix,iy,iz,e,1))) 
+     >                                  *vtrans(ix,iy,iz,e,irho)
+     >                                          *e_dist**2
+                
+         enddo
+         enddo
+         enddo
+
+      enddo
+  
+      call wgradm1(du(1,1,1),du(1,1,2),du(1,1,3),t(1,1,1,1,1),nelt)
+!     CHECK if3d changes wgradm1      
+         do k=1,ldim ! du comes out multiplied by Jomega=BM1
+            call invcol2(du(1,1,k),bm1,ntot)
+         enddo
+         call comp_sij(sij,nij,du(1,1,1),du(1,1,2),du(1,1,3),
+     >                 ur,us,ut,vr,vs,vt,wr,ws,wt)
+         do e =1,nelt
+            e_dist = meshh(e) 
+            l=0
+            do iz=1,lz1
+            do iy=1,ly1
+            do ix=1,lx1
+               l=l+1
+               res2(ix,iy,iz,e,3)=0.0
+               do k=1,ldim
+                  res2(ix,iy,iz,e,3)=res2(ix,iy,iz,e,3)+0.5*sij(l,k,e)
+               enddo
+!              t(ix,iy,iz,e,7) = ABS(res2(ix,iy,iz,e,3)) !for debug
+               res2(ix,iy,iz,e,3) = (ABS(res2(ix,iy,iz,e,3)) /
+     >              (t(ix,iy,iz,e,1))**2) * vtrans(ix,iy,iz,e,irho) 
+     >                * (e_dist**3) * csound(ix,iy,iz,e)**3 
+            enddo
+            enddo
+            enddo
+         enddo
+! Debug dump
+!         e_dist = glmax(t(1,1,1,1,3),ntot)
+!         if (nio.eq.0) WRITE(*,*), 'abs grad T= ',e_dist, 'stage =',
+!     >                                                 stage
+!         e_dist = glmax(csound(1,1,1,1),ntot)
+!         if (nio.eq.0) WRITE(*,*), 'csound= ',e_dist, 'stage =',stage
+
+! piecewise linear tent over maximum values of viscosity/shock detectors
+! JH081919 PLEASE REWRITE max_to_trilin FOR DEFORMED ELEMENTS
+         call cfill (du,1.0e36,ntot)
+         do k = 1,3
+!           call max_to_trilin(res2(1,1,1,1,k)) ! Makes life worse :(
+            call evmsmooth(res2(1,1,1,1,k),du,.true.)
+         enddo
+
+      return
+      end
+
+
 
 !-----------------------------------------------------------------------
 
@@ -459,6 +617,7 @@ c-----------------------------------------------------------------------
       subroutine max_to_trilin(field)
 ! stupid subroutine to take a stupid uniform field and compute a trilinear
 ! tent between maximum shared values at the vertices.
+! THIS DOESN'T WORK ON DEFORMED ELEMENTS. FIND SOMETHING THAT DOES
       include 'SIZE'
       include 'TOTAL'
       real field(lx1,ly1,lz1,nelt)

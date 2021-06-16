@@ -27,7 +27,7 @@ C> each of lx1*ly1*lz1 grid points for all elements
      $   , totalh(lxd*lyd*lzd,3)
       common /convectdata/ convh, diffh, totalh
 
-      real               usrf(lx1,ly1,lz1,5)
+      real               usrf(lx1,ly1,lz1,toteq)
       common /forcedata/ usrf 
 
       real c_sub_e,c_max,meshh(lelt),maxdiff,gridh(lx1*ly1*lz1,lelt),
@@ -49,26 +49,29 @@ c---------------------------------------------------------------------
       common /cmtgasprop/ csound
 
       real            cpgref,cvgref,cvjref,gmaref,rgasref,molmass,
-     $   MAref,MBref,CAref,CBref,   ! NTN for mixed model
+     $   MAref,MBref,CAref,CBref,   ! NTN for 1-equation mixture model
      $    rhoidref,rho0ref,EN_IDref,EN_Oref,
-     $    MWref,CWref,MCref,CCref,
-     $    AAref,
-     $    BBref,R1ref,R2ref,OMref,
-     $    AA,BB,OM,CC,CW,se0const
+     $    MWref,CWref,MCref,CCref,       ! JWL
+     $    AAref,BBref,R1ref,R2ref,OMref,
+     $    AA,BB,OM,CC,CW,
+     >    gmatait,rho0tait,p0tait,Btait,cvtait,e0tait,T0tait, ! Tait
+     >    se0const
 
       common /cmtgasref/cpgref,cvgref,cvjref,gmaref,rgasref,molmass,
-     $    MAref,MBref,CAref,CBref,   ! NTN for mixed model
-     $    rhoidref,rho0ref,EN_IDref,EN_Oref,
-     $    MWref,CWref,MCref,CCref,
-     $    AAref,
-     $    BBref,R1ref,R2ref,OMref,
-     $    AA,BB,OM,CC,CW,se0const
+     $    MAref,MBref,CAref,CBref,   ! NTN for 1-equation mixture model
+     $    rhoidref,rho0ref,EN_IDref,EN_Oref, 
+     $    MWref,CWref,MCref,CCref,       ! JWL
+     $    AAref,BBref,R1ref,R2ref,OMref,
+     $    AA,BB,OM,CC,CW,
+     >    gmatait,rho0tait,p0tait,Btait,cvtait,e0tait,T0tait, ! Tait
+     >    se0const
 
       integer              stage,nstage,iostep2
-      common /tstepstage/ stage,nstage,iostep2
+      logical 		   dumped_stage
+      common /tstepstage/ stage,nstage,iostep2,dumped_stage
 
-      real                  tcoef(3,3),time_cmt
-      common /timestepcoef/ tcoef,time_cmt
+      real                  tcoef(3,3),time_cmt,time_iotarg
+      common /timestepcoef/ tcoef,time_cmt, time_iotarg
       
       real              rho,phi,pres,cv,e_internal
      $                 ,t0in,p0in,asnd,rgas,cp,mu,lambda,molarmass
@@ -79,6 +82,7 @@ c---------------------------------------------------------------------
 ! index for gas density in vtrans, Q+-
       integer irho
       parameter (irho=1) ! better always be 1
+c     paramter (lpscal=2) ! corresponds to number of species
 ! other VTRANS indices
       integer icp, icv
       parameter (icp =2) ! rho*cp
@@ -95,7 +99,8 @@ c---------------------------------------------------------------------
       parameter (irpu=2)     ! phi_g*rho_g*u
       parameter (irpv=3)     ! phi_g*rho_g*v
       parameter (irpw=4)     ! phi_g*rho_g*w
-      parameter (iret=toteq) ! phi_g*rho_g*E
+      parameter (iret=5) ! phi_g*rho_g*E
+      parameter (imfrac=6) ! phi_g*rho_g*Y1
 ! indices for fields in Q-+
       integer iux, iuy, iuz, ipr, ithm, isnd, iph, icvf, icpf, imuf, 
      $        ikndf, ilamf, iu1, iu2, iu3, iu4, iu5, nqq
@@ -116,7 +121,13 @@ c---------------------------------------------------------------------
       parameter (iu3=16)   ! U3
       parameter (iu4=17)   ! U4
       parameter (iu5=18)   ! U5
-      parameter (nqq=18)
-
+      parameter (iu6=19)   ! U5
+! JH070119 Tait mixture model extension.
+!          Need species mass fraction (2 species for now) on faces
+      parameter (nqq=20)
+      parameter (imfracf=nqq) ! tait mixture model. will be nicer in essplit
+c JB080119 multiple species
+c     parameter (imfracf=20) ! tait mixture model. will be nicer in essplit
+c     parameter (nqq=imfracf+lpscal-1)
       logical time4av
       common /cmtflags/ time4av

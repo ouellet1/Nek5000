@@ -12,12 +12,6 @@ else
    CMT=0
 fi
 
-if echo $PPS | grep -q 'LPM' ; then
-   LPM=1
-else
-   LPM=0
-fi
-
 rm -f $CASENAME.f
 cp -pv $CASENAME.usr $CASENAME.f
 
@@ -89,38 +83,6 @@ c automatically added by makenek
 _ACEOF
 fi
 
-if ! cat $CASENAME.f | grep -qi "subroutine.*cmtchk" ; then
-cat >> $CASENAME.f << _ACEOF
-
-c automatically added by makenek
-      subroutine cmtchk
-      include 'SIZE'
-      include 'TOTAL'
-      include 'CMTDATA'
-
-      ifxyo=.true.
-      if (istep.gt.1) ifxyo=.false.
-
-      return
-      end
-_ACEOF
-fi
-
-if ! cat $CASENAME.f | grep -qi "subroutine.*cmt_userflux" ; then
-cat >> $CASENAME.f << _ACEOF
-
-c automatically added by makenek
-      subroutine cmt_userflux ! user defined flux
-      include 'SIZE'
-      include 'TOTAL'
-      include 'NEKUSE'
-      include 'CMTDATA'
-      real fluxout(lx1*lz1)
-      return
-      end
-_ACEOF
-fi
-
 if ! cat $CASENAME.f | grep -qi "subroutine.*cmt_userEOS" ; then
 cat >> $CASENAME.f << _ACEOF
 
@@ -135,28 +97,29 @@ c automatically added by makenek
       end
 _ACEOF
 fi
-fi
 
-if [ $LPM -ne 0 ]; then
-if ! cat $CASENAME.f | grep -qi "subroutine.*lpm_usr_f" ; then
+if ! cat $CASENAME.f | grep -qi "subroutine.*cmtchk" ; then
 cat >> $CASENAME.f << _ACEOF
 
 c automatically added by makenek
-      subroutine lpm_usr_f
+      subroutine cmtchk
+c Unlike userchk, cmtchk is called at EVERY Runge-Kutta stage. Please do 
+c NOT place executable statements outside of the if-endif block below 
+c unless you know what you are doing. 
       include 'SIZE'
       include 'TOTAL'
-      include 'LPM'
-      parameter(rgrav = 9.8) ! gravitational acceleration
-      lpmforce(1) = 0.0  ! only acting on particles
-      lpmforce(2) = 0.0
-      lpmforce(3) = 0.0
-      lpmforcec(1) = 0.0 ! coupled back to fluid
-      lpmforcec(2) = 0.0
-      lpmforcec(3) = 0.0
-c     i.e., below is gravity + buoyancy in -y direction
-c     lpmforce(2) = -rgrav*lpmvol_p*(lpmdens_p - lpmdens_f)
+      include 'CMTDATA'
+
+      if (stage.eq.1) then
+         ! everything you'd ever want to do in userchk goes here 
+         ! if you want CMT-nek to do it
+         ifxyo=.true.
+         if (istep.gt.1) ifxyo=.false.
+      endif
+
       return
       end
 _ACEOF
 fi
+
 fi

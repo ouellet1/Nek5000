@@ -1,27 +1,30 @@
       subroutine userchk
+      include 'SIZE'
+      include 'TOTAL'
+      ifxyo = .true.
+      if (istep.gt.1) ifxyo=.false.
       return
       end
 
+!-----------------------------------------------------------------------
       subroutine cmtchk
+c Unlike userchk, cmtchk is called at EVERY Runge-Kutta stage. Please do 
+c NOT place executable statements outside of the if-endif block below 
+c unless you know what you are doing. 
       include 'SIZE'
       include 'TOTAL'
       include 'CMTDATA'
-      parameter (lt=lx1*ly1*lz1*lelt)
-      common /mystuff/ vrt(lt,3),wk1(lt),wk2(lt)
       
-      scale = 1.
-      nxyz=nx1*ny1*nz1
-      if (istep.gt.0)then
-      if (mod(istep,1000).eq.0)
-     >   call l2norm_2d_vortex
-      endif
-      ifxyo = .true.
-
+      if (stage.eq.1) then
+         scale = 1.
+         nxyz=nx1*ny1*nz1
+         if (istep.gt.0)then
+         if (mod(istep,1000).eq.0)
+     >      call l2norm_2d_vortex
+         endif
 ! sigh. need settime to bend to my will
-      time=time_cmt
-      dt=dt_cmt
-
-      if (mod(istep,iostep).eq.0) call comp_vort3(vrt,wk1,wk2,vx,vy,vz)
+         time=time_cmt
+      endif
 
       return
       end
@@ -245,7 +248,7 @@ c
       enddo
       pi = 4.0*atan(1.0)
       phigic = 1.0
-      num_steps = int(1/dt_cmt)
+      num_steps = int(1.0/dt)
       xctrnew = xctr + uxinf*time_cmt
       yctrnew = yctr + uyinf*time_cmt
       nloop = int(int(uxinf*time_cmt)/10) + 1

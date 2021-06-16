@@ -19,10 +19,6 @@ C> and store it for one element. Store faces of \f$\mathbf{H}^d\f$ for IGU.
 
       integer e,eq
 
-      if (eq .lt. toteq) then ! not energy
-         if (eq .gt. ldim+1) return ! not if3d
-      endif
-
       nxyz=lx1*ly1*lz1
       nfq=lx1*lz1*2*ldim*nelt
       nstate = nqq
@@ -248,10 +244,35 @@ c computed by multiplying rho by u_j
             enddo
             call col2(convh(1,1),vxd(1,1,1,e),n)
             call col2(convh(1,2),vyd(1,1,1,e),n)
-            call col2(convh(1,3),vzd(1,1,1,e),n)
+            if (if3d) call col2(convh(1,3),vzd(1,1,1,e),n)
+c JB072219 species flux
+c JB 080119 go through for multiple species
+c        elseif (eq .ge. 6) then 
+         elseif (eq .eq. 6) then 
+c           call intp_rstd(convh(1,1),u(1,1,1,eq,e),lx1,lxd,if3d,0)
+c JB080219 trying new way to see if it work
+c           write(10,*)vtrans(1,1,1,e,irho) 
+c           write(11,*)t(1,1,1,1,2)
+c           call exitt
+            call intp_rstd(convh(1,1),vtrans(1,1,1,e,irho)
+     >                                             ,lx1,lxd,if3d,0)
+            call intp_rstd(ju1,t(1,1,1,e,2)
+     >                                             ,lx1,lxd,if3d,0)
+c           do i=1,n
+c           write(12,*)convh(n,1)
+c           write(13,*)convh(n,4)
+c           enddo 
+c           call exitt
+            call col2(convh(1,1),ju1,n)
+            call copy(convh(1,2),convh(1,1),n)
+            if (if3d) call copy(convh(1,3),convh(1,1),n)
+
+            call col2(convh(1,1),vxd(1,1,1,e),n)
+            call col2(convh(1,2),vyd(1,1,1,e),n)
+            if (if3d) call col2(convh(1,3),vzd(1,1,1,e),n)
 
          else
-            if(nio.eq.0) write(6,*) 'eq=',eq,'really must be <= 5'
+            if(nio.eq.0) write(6,*) 'eq=',eq,'really must be <= 6'
             if(nio.eq.0) write(6,*) 'aborting in evaluate_conv_h'
             call exitt
          endif
@@ -304,9 +325,16 @@ c computed by multiplying rho by u_j
          call col2(convh(1,3),vzd(1,1,1,e),n)
 
       else
-         if(nio.eq.0) write(6,*) 'eq=',eq,'really must be <= 5'
-         if(nio.eq.0) write(6,*) 'aborting in evaluate_conv_h'
-         call exitt
+! JH070119 Tait mixture model species. hardcode 1 for now
+! JB 070219
+        call copy(convh(1,1),u(1,1,1,toteq,e),n)
+        call copy(convh(1,2),u(1,1,1,toteq,e),n)
+        if (if3d) call copy(convh(1,3),u(1,1,1,toteq,e),n)
+
+        call col2(convh(1,1),vxd(1,1,1,e),n)
+        call col2(convh(1,2),vyd(1,1,1,e),n)
+        call col2(convh(1,3),vzd(1,1,1,e),n)
+         
       endif
 
       return
@@ -447,33 +475,21 @@ C> @}
       integer e,eq_num
       parameter (ldd=lxd*lyd*lzd)
 
-      common /lpm_fix/ phigdum,phigvdum
-      real phigdum(lx1,ly1,lz1,lelt,3),phigvdum(lx1,ly1,lz1,lelt)
-
       nxyz=lx1*ly1*lz1
       if(eq_num.ne.1.and.eq_num.ne.5)then
-
 
         if (eq_num.eq.4.and.ldim.eq.2)then
 
         else
-#ifdef LPM
-           call subcol3(res1(1,1,1,e,eq_num),phigdum(1,1,1,e,eq_num-1)
-     >                  ,bm1(1,1,1,e),nxyz)
-#endif
            call subcol3(res1(1,1,1,e,eq_num),usrf(1,1,1,eq_num)
      $                  ,bm1(1,1,1,e),nxyz) 
         endif
       elseif(eq_num.eq.5)then
-
-#ifdef LPM
-           call subcol3(res1(1,1,1,e,eq_num),phigvdum(1,1,1,e)
-     >                  ,bm1(1,1,1,e),nxyz)
-#endif
 c          call subcol3(res1(1,1,1,e,eq_num),usrf(1,1,1,eq_num)
 c    $                  ,bm1(1,1,1,e),nxyz) 
 
       endif
+
       return
       end
 c-----------------------------------------------------------------------
@@ -487,7 +503,7 @@ c-----------------------------------------------------------------------
       integer e,eg
 
       if(istep.eq.1)then
-        n = lx1*ly1*lz1*5
+        n = lx1*ly1*lz1*toteq
         call rzero(usrf,n)
       endif
       eg = lglel(e)
@@ -496,21 +512,23 @@ c-----------------------------------------------------------------------
             do i=1,lx1
                call NEKASGN(i,j,k,e)
                call userf(i,j,k,eg)
-               rdum4 = 0.
-#ifdef LPM
-               call lpm_userf(I,J,K,e,rdum1,rdum2,rdum3,rdum4)
-               FFX  = FFX + rdum1
-               FFY  = FFY + rdum2
-               FFZ  = FFZ + rdum3
-#endif
-               ! note fx,fy,fz multiply by density to stay 
-               ! consistent with nek5000 units. Same for phig (cancels)
-               usrf(i,j,k,2) = FFX*u(i,j,k,1,e)*phig(i,j,k,e)
-               usrf(i,j,k,3) = FFY*u(i,j,k,1,e)*phig(i,j,k,e)
-               usrf(i,j,k,4) = FFZ*u(i,j,k,1,e)*phig(i,j,k,e)
+
+               ! note fx,fy,fz multiply by density*phig to be
+               ! consistent with nek5000 units (i.e. ffx,ffy,ffz
+               ! are accelerations!
+               usrf(i,j,k,2) = FFX*u(i,j,k,1,e)
+               usrf(i,j,k,3) = FFY*u(i,j,k,1,e)
+               usrf(i,j,k,4) = FFZ*u(i,j,k,1,e)
                usrf(i,j,k,5) = 0.0
 c              usrf(i,j,k,5) = (U(i,j,k,2,e)*FFX + U(i,j,k,3,e)*FFY
 c    &                       +  U(i,j,k,4,e)*FFZ)/ U(i,j,k,1,e)
+! JH070219 Tait mixture model. no idea what particles are going to look
+! like in it
+c JB080119 multiple species
+               usrf(i,j,k,6) = 0.0
+c              do l = 6,NPSCAL+6
+c                 usrf(i,j,k,l) = 0.0
+c              enddo
             enddo
          enddo
       enddo

@@ -58,6 +58,13 @@ C> \f$\oint \mathbf{H}^{c\ast}\cdot\mathbf{n}dA\f$ on face points
          i_cvars=i_cvars+nfq
       enddo
 
+! JH070119 Tait mixture model extension.
+!          Need species mass fraction (2 species for now) on faces
+cJB080119 loop through multiple species
+      call fillq(imfracf,t(1,1,1,1,2),fatface(iwm),fatface(iwp))
+c       do j = 1,NPSCAL
+c           call fillq(imfracf+j,t(1,1,1,1,i),fatface(iwm),fatface(iwp))
+c       enddo
       call face_state_commo(fatface(iwm),fatface(iwp),nfq,nstate
      >                     ,dg_hndl)
 
@@ -210,13 +217,16 @@ C> @}
 ! pr       : pressure
 ! er      : rho*cp
 
+! JH070119 Tait mixture model extension. Added yl and yr for
+!          mass fraction on fine-grid faces
       COMMON /SCRNS/ nx(lfd), ny(lfd), nz(lfd), rl(lfd), ul(lfd),
      >               vl(lfd), wl(lfd), pl(lfd), tl(lfd), al(lfd),
      >               el(lfd),rr(lfd), ur(lfd), vr(lfd), wr(lfd),
      >               pr(lfd),tr(lfd), ar(lfd),er(lfd),phl(lfd),fs(lfd),
-     >               jaco_f(lfd),flx(lfd,toteq),jaco_c(lx1*lz1)
+     >               jaco_f(lfd),flx(lfd,toteq),jaco_c(lx1*lz1),
+     >               yl(lfd),yr(lfd)
       real nx, ny, nz, rl, ul, vl, wl, pl, tl, al, el, rr, ur, vr, wr,
-     >                pr,tr, ar,er,phl,fs,jaco_f,flx,jaco_c
+     >                pr,tr, ar,er,phl,fs,jaco_f,flx,jaco_c, yl,yr
 
 !     REAL vf(3)
       real nTol
@@ -274,6 +284,8 @@ C> @}
             call map_faced(tl,wminus(1,f,e,ithm),lx1,lxd,fdim,0)
             call map_faced(al,wminus(1,f,e,isnd),lx1,lxd,fdim,0)
             call map_faced(el,wminus(1,f,e,icpf),lx1,lxd,fdim,0)
+! JH070119 Tait mixture model extension. Y- and Y+
+            call map_faced(yl,wminus(1,f,e,imfracf),lx1,lxd,fdim,0)
 
             call map_faced(rr,wplus(1,f,e,irho),lx1,lxd,fdim,0)
             call map_faced(ur,wplus(1,f,e,iux),lx1,lxd,fdim,0)
@@ -283,6 +295,7 @@ C> @}
             call map_faced(tr,wplus(1,f,e,ithm),lx1,lxd,fdim,0)
             call map_faced(ar,wplus(1,f,e,isnd),lx1,lxd,fdim,0)
             call map_faced(er,wplus(1,f,e,icpf),lx1,lxd,fdim,0)
+            call map_faced(yr,wplus(1,f,e,imfracf),lx1,lxd,fdim,0)
 
             call map_faced(phl,wminus(1,f,e,iph),lx1,lxd,fdim,0)
 
@@ -303,6 +316,7 @@ C> @}
             call copy(tl,wminus(1,f,e,ithm),nxz)
             call copy(al,wminus(1,f,e,isnd),nxz)
             call copy(el,wminus(1,f,e,icpf),nxz)
+            call copy(yl,wminus(1,f,e,imfracf),nxz)
 
             call copy(rr,wplus(1,f,e,irho),nxz)
             call copy(ur,wplus(1,f,e,iux),nxz)
@@ -312,6 +326,7 @@ C> @}
             call copy(tr,wplus(1,f,e,ithm),nxz)
             call copy(ar,wplus(1,f,e,isnd),nxz)
             call copy(er,wplus(1,f,e,icpf),nxz)
+            call copy(yr,wplus(1,f,e,imfracf),nxz)
 
             call copy(phl,wminus(1,f,e,iph),nxz)
 
@@ -320,7 +335,12 @@ C> @}
          call rzero(fs,nxzd) ! moving grid stuff later
 
          call AUSM_FluxFunction(nxzd,nx,ny,nz,jaco_f,fs,rl,ul,vl,wl,pl,
-     >                          al,tl,rr,ur,vr,wr,pr,ar,tr,flx,el,er)
+     >                          al,tl,rr,ur,vr,wr,pr,ar,tr,el,er,yl,yr,
+     >                          flx)
+! JH070119 local Lax-Friedrichs for mass fraction in mixture model of
+!          Tait & JWL products
+!        call LLF_FluxFunction(nxzd,nx,ny,nz,jaco_f,ul,vl,wl,rl,yl,
+!    >                          ur,vr,wr,rr,yr,flx(1,toteq))
 
          do j=1,toteq
             call col2(flx(1,j),phl,nxzd)
